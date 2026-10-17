@@ -108,8 +108,8 @@ phrase-book/
 User / Session / Account   ← Better Authが生成
 
 Phrase
-  id, userId(FK), phrase, meaning, example?, note?, source?,
-  isPublic (default false), createdAt, updatedAt
+  id, userId(FK), phrase, meaning, example?, context?, note?,
+  source?, sourceUrl?, isPublic (default false), createdAt, updatedAt
   index: (userId, createdAt), (isPublic, createdAt)
 
 Tag          ※今後の拡張
@@ -123,6 +123,15 @@ PhraseTag    ※今後の拡張・明示（explicit）の中間テーブル
 
 ### 設計メモ
 
+- Phrase の各項目の役割は次のとおり。どこに何を書くか迷わないように分ける
+  - `example`：例文（どう使うか）
+  - `context`：使う場面やニュアンス（いつ使うか）
+  - `note`：自分用の自由なメモ
+  - `source`：どこで見つけたか（「Friends S1E3」「同僚との会話」など、URL がないものも書ける）
+  - `sourceUrl`：見つけた場所の URL
+- `source` と `sourceUrl` を分けるのは、URL にだけ厳しいチェックをかけるため。`sourceUrl` は画面で `<a href>` として表示するので、`javascript:` などを入れられると XSS になる。zod の `z.httpUrl()` で http / https だけを許可する（`z.url()` だけでは `javascript:` も通ってしまう）
+- MySQL の型：`String` はそのままだと `VARCHAR(191)` になる。`example`・`context`・`note` は `@db.Text`、`sourceUrl` は `@db.VarChar(2048)` にする
+- `userId` は、Better Auth を入れて `User` テーブルができてから（ステップ3・4）マイグレーションで追加する。ステップ1のマイグレーションには含めない
 - 多対多は明示（explicit）の中間テーブルにする。中間テーブルにカラムを追加でき、SQLとの対応が見えるため
 - タグはユーザーごとに持つ。フレーズに紐付けるときは、`phraseId` と `tagId` がどちらも自分のものかをサービス層でチェックする
 
