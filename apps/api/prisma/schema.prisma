@@ -1,0 +1,29 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Phrase {
+  id        Int      @id @default(autoincrement())
+  phrase    String   @db.VarChar(255)
+  meaning   String   @db.VarChar(500)
+  example   String?  @db.Text
+  context   String?  @db.Text
+  note      String?  @db.Text
+  source    String?  @db.VarChar(255)
+  sourceUrl String?  @db.VarChar(2048)
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPublic, createdAt(sort: Desc)])
+}
