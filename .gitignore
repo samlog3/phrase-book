@@ -34,6 +34,4 @@ apps/api/src/generated/
 note.md
 
 .claude/
-#prismaのagents
-apps/api/.agents/
-apps/api/.windsurf/
+
