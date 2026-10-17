@@ -2,4 +2,8 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
+  esbuild: true
   unrs-resolver: true
+catalog:
+  typescript: ^5
+  "@types/node": ^24

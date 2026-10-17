@@ -70,11 +70,32 @@
 ```
 phrase-book/
   apps/
-    web/   Next.js       (localhost:3000)  ← UI。セッションの確認のみ行う
-    api/   Hono + Prisma + Better Auth (localhost:8787)
-  compose.yaml           ← MySQL
-  pnpm-workspace.yaml
+    web/                   Next.js (localhost:3000)  ← UI。セッションの確認のみ行う
+    api/                   Hono + Prisma + Better Auth (localhost:8787)
+      src/
+        routes/            ルーティングとリクエストのバリデーション
+        services/          ビジネスロジックと認可のチェック
+        middleware/        セッションの検証など
+        lib/               Prisma・Better Auth の初期化
+        generated/prisma/  Prisma Client の生成物（git 管理外）
+        app.ts             Hono アプリの定義。AppType を export
+        index.ts           app を読み込んで serve() で起動する
+      prisma/
+        schema.prisma
+      prisma.config.ts     Prisma の設定（接続 URL など）
+  packages/
+    shared/                web と api で共有するコード（@phrase-book/shared）
+      src/
+        schemas/           zod スキーマ
+        constants.ts       PAGE_SIZE などの定数
+        index.ts
+  compose.yaml             MySQL
+  pnpm-workspace.yaml      apps/*, packages/*
+  tsconfig.base.json       共通のコンパイラ設定
+  package.json             dev / test / lint をまとめて実行するスクリプト
 ```
+
+- `app.ts` と `index.ts` を分けるのは、テストで `app.request()` を使うときに、サーバーを起動せずにアプリの定義だけを import するため
 
 - webはapiの `AppType` を**型としてのみ**importし、RPCクライアントで呼び出す
 - 認証はCookieによるセッション方式とする。CORSは `origin` を明示し、`credentials: true` を指定する
