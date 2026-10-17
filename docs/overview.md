@@ -29,16 +29,16 @@
 
 ### 対象
 
-| 区分 | 内容 |
-|---|---|
-| 認証 | サインアップ、ログイン、ログアウト |
-| フレーズ | 作成、一覧、詳細、編集、削除 |
-| 認可 | 自分のフレーズのみ編集・削除できる |
-| 公開設定 | 公開・非公開の切り替え、公開フレーズ一覧（閲覧は誰でも可能） |
-| ページネーション | 自分の一覧と公開一覧。offset方式、1ページ30件、作成日時の新しい順 |
-| 画面保護 | 未ログイン時に保護された画面へアクセスした場合の制御。方式は調査の上で設計する |
-| 画面状態 | ローディング、エラー、Not Found の表示（`loading.tsx` / `error.tsx` / `not-found.tsx`） |
-| テスト | APIのテスト（認証・認可を中心に） |
+| 区分             | 内容                                                                                    |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| 認証             | サインアップ、ログイン、ログアウト                                                      |
+| フレーズ         | 作成、一覧、詳細、編集、削除                                                            |
+| 認可             | 自分のフレーズのみ編集・削除できる                                                      |
+| 公開設定         | 公開・非公開の切り替え、公開フレーズ一覧（閲覧は誰でも可能）                            |
+| ページネーション | 自分の一覧と公開一覧。offset方式、1ページ30件、作成日時の新しい順                       |
+| 画面保護         | 未ログイン時に保護された画面へアクセスした場合の制御。方式は調査の上で設計する          |
+| 画面状態         | ローディング、エラー、Not Found の表示（`loading.tsx` / `error.tsx` / `not-found.tsx`） |
+| テスト           | APIのテスト（認証・認可を中心に）                                                       |
 
 ### 対象外
 
@@ -54,16 +54,16 @@
 
 ## 技術スタック
 
-| 領域 | 技術 |
-|---|---|
-| 言語 | TypeScript |
-| フロント | Next.js（App Router）、React、shadcn/ui |
-| API | Hono（`@hono/node-server`）、Hono RPC |
-| DB / ORM | MySQL（Docker Compose）、Prisma（MySQL用のdriver adapter） |
-| 認証 | Better Auth（Prisma adapter、メールアドレスとパスワード） |
-| バリデーション | zod、`@hono/zod-validator` |
-| テスト | Vitest（Honoの `app.request()` を使ったAPIテスト） |
-| 構成管理 | pnpm workspaces（モノレポ） |
+| 領域           | 技術                                                       |
+| -------------- | ---------------------------------------------------------- |
+| 言語           | TypeScript                                                 |
+| フロント       | Next.js（App Router）、React、shadcn/ui                    |
+| API            | Hono（`@hono/node-server`）、Hono RPC                      |
+| DB / ORM       | MySQL（Docker Compose）、Prisma（MySQL用のdriver adapter） |
+| 認証           | Better Auth（Prisma adapter、メールアドレスとパスワード）  |
+| バリデーション | zod、`@hono/zod-validator`                                 |
+| テスト         | Vitest（Honoの `app.request()` を使ったAPIテスト）         |
+| 構成管理       | pnpm workspaces（モノレポ）                                |
 
 ## 構成
 
@@ -82,7 +82,7 @@ phrase-book/
         index.ts           app を読み込んで serve() で起動する
       prisma/
         schema.prisma
-      prisma.config.ts     Prisma の設定（接続 URL など）
+      prisma7.config.ts     Prisma の設定（接続 URL など）
   packages/
     shared/                web と api で共有するコード（@phrase-book/shared）
       src/
@@ -137,15 +137,15 @@ PhraseTag    ※今後の拡張・明示（explicit）の中間テーブル
 
 ## API
 
-| メソッド | パス | 内容 | 認可 |
-|---|---|---|---|
-| * | `/api/auth/*` | Better Auth | ― |
-| GET | `/phrases?page=` | 自分のフレーズ一覧 | ログイン必須 |
-| GET | `/phrases/public?page=` | 公開フレーズ一覧 | なし |
-| GET | `/phrases/:id` | 詳細 | 本人のもの、または公開されているもの |
-| POST | `/phrases` | 作成 | ログイン必須 |
-| PATCH | `/phrases/:id` | 更新 | 本人のみ |
-| DELETE | `/phrases/:id` | 削除 | 本人のみ |
+| メソッド | パス                    | 内容               | 認可                                 |
+| -------- | ----------------------- | ------------------ | ------------------------------------ |
+| \*       | `/api/auth/*`           | Better Auth        | ―                                    |
+| GET      | `/phrases?page=`        | 自分のフレーズ一覧 | ログイン必須                         |
+| GET      | `/phrases/public?page=` | 公開フレーズ一覧   | なし                                 |
+| GET      | `/phrases/:id`          | 詳細               | 本人のもの、または公開されているもの |
+| POST     | `/phrases`              | 作成               | ログイン必須                         |
+| PATCH    | `/phrases/:id`          | 更新               | 本人のみ                             |
+| DELETE   | `/phrases/:id`          | 削除               | 本人のみ                             |
 
 - 権限がない場合は**404を返す**（リソースが存在するかどうかを隠すため）。未ログインなら401
 - エラーは `{ error: { code, message } }` の形に統一する
@@ -153,19 +153,19 @@ PhraseTag    ※今後の拡張・明示（explicit）の中間テーブル
 
 ## 画面
 
-| パス | 内容 | ログイン |
-|---|---|---|
-| `/signup` | サインアップ | 不要 |
-| `/login` | ログイン | 不要 |
-| `/phrases` | 自分のフレーズ一覧 | 必須 |
-| `/phrases/new` | 新規作成 | 必須 |
-| `/phrases/[id]` | 詳細 | 公開フレーズは不要 |
-| `/phrases/[id]/edit` | 編集 | 必須 |
-| `/public` | 公開フレーズ一覧 | 不要 |
+| パス                 | 内容               | ログイン           |
+| -------------------- | ------------------ | ------------------ |
+| `/signup`            | サインアップ       | 不要               |
+| `/login`             | ログイン           | 不要               |
+| `/phrases`           | 自分のフレーズ一覧 | 必須               |
+| `/phrases/new`       | 新規作成           | 必須               |
+| `/phrases/[id]`      | 詳細               | 公開フレーズは不要 |
+| `/phrases/[id]/edit` | 編集               | 必須               |
+| `/public`            | 公開フレーズ一覧   | 不要               |
 
 ## 進める順番
 
-### 1. 開発基盤の構築
+### 1. 開発基盤の構築（完了：2026-10-17）
 
 - pnpm workspacesでモノレポを作る（`apps/web`、`apps/api`）
 - Docker ComposeでMySQLを起動する
