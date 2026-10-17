@@ -32,3 +32,5 @@ next-env.d.ts
 apps/api/src/generated/
 
 note.md
+
+.claude/
