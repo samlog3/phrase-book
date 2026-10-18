@@ -86,9 +86,9 @@ phrase-book/
   packages/
     shared/                web と api で共有するコード（@phrase-book/shared）
       src/
-        schemas/           zod スキーマ
-        constants.ts       PAGE_SIZE などの定数
-        index.ts
+        phrase.ts          フレーズの zod スキーマと、そこから作る型
+        errors.ts          エラーコード（ERROR_CODE）
+        index.ts           PAGE_SIZE などの定数と、上の2つの再 export
   compose.yaml             MySQL
   pnpm-workspace.yaml      apps/*, packages/*
   tsconfig.base.json       共通のコンパイラ設定
@@ -170,7 +170,7 @@ PhraseTag    ※今後の拡張・明示（explicit）の中間テーブル
 
 **完了条件**：`docker compose up` と `pnpm dev` でwebとapiが起動し、DBにテーブルが作られている
 
-### 2. フレーズCRUD API
+### 2. フレーズCRUD API（完了：2026-10-18）
 
 - `/api/phrases` のCRUDエンドポイントを実装する（この時点では認証なし）
 - zodでリクエストをバリデーションする。スキーマをフロントと共有する方法を決める
