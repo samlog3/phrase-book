@@ -19,22 +19,26 @@ app.onError((err, c) => {
       err.status,
     );
   }
+  // Hono 本体やミドルウェアが投げる HTTPException のうち、仕様にあるコードに対応づけられるもの
   if (err instanceof HTTPException && err.status === 400) {
-    // VALIDATION_ERROR (400)
     return c.json(
       errorResponse(ERROR_CODE.VALIDATION_ERROR, "Invalid request", {
-        formErrors: ["Malformed JSON in request body"],
+        // メッセージなしで投げられることもある（bearerAuth など）ので、空なら入れない
+        formErrors: err.message ? [err.message] : [],
         fieldErrors: {},
       }),
       400,
     );
-  } else {
-    console.error(err);
-    return c.json(
-      errorResponse(ERROR_CODE.INTERNAL_ERROR, "Internal server error"),
-      500,
-    );
   }
+  if (err instanceof HTTPException && err.status === 401) {
+    return c.json(errorResponse(ERROR_CODE.UNAUTHORIZED, "Unauthorized"), 401);
+  }
+  // 上のどれにも当てはまらないものは想定外のエラーとして扱う
+  console.error(err);
+  return c.json(
+    errorResponse(ERROR_CODE.INTERNAL_ERROR, "Internal server error"),
+    500,
+  );
 });
 
 export default app;
