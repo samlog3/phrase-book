@@ -150,6 +150,10 @@ JSON Merge Patch（RFC 7396）と同じ考え方にする。
 - 500 のときは、エラーの中身（スタックトレースや Prisma のエラー文）をレスポンスに出さず、サーバーのログにだけ出す
 - 存在しないパスも `NOT_FOUND` で返す
 - ボディが JSON として読めない場合、`zValidator` は zod の検証の前に Hono の `HTTPException`（400）を投げる。`onError` でこれを `VALIDATION_ERROR` に変換し、`details` は同じ形にそろえて `{ "formErrors": ["Malformed JSON in request body"], "fieldErrors": {} }` とする（変換しないと 500 になる）
+- Hono 本体やミドルウェアが投げる `HTTPException` は、次のように変換する
+  - 400 → `VALIDATION_ERROR`。`formErrors` には `HTTPException` のメッセージを入れる（上の壊れた JSON はこのケース）。メッセージがなければ空の配列にする
+  - 401 → `UNAUTHORIZED`
+  - それ以外（413 など）→ コード一覧に対応するものがないので、想定外のエラーとして `INTERNAL_ERROR`（500）にする
 
 ### 判定の順番
 
