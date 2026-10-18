@@ -7,6 +7,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio"
@@ -25,6 +26,7 @@
     "@types/node": "catalog:",
     "prisma": "^7.10.1",
     "tsx": "^4.23.0",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^5.0.5"
   }
 }
