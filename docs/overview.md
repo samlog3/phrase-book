@@ -2,7 +2,7 @@
 
 ## 目的
 
-- 入社前課題として、配属先の技術スタック（TypeScript / React / Next.js / Hono / MySQL / ORM）を一通り経験する
+- 入社前課題として、特定の技術スタック（TypeScript / React / Next.js / Hono / MySQL / ORM）を一通り経験する
 - CRUD、認証、認可を自分の手で実装し、実務に近い構成（フロントとAPIを分離）で開発する流れを身につける
 - 題材は、自分が出会った英語フレーズを保存する「フレーズ帳」とする
 
