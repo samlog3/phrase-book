@@ -22,15 +22,7 @@ export const createPhrase = z.object({
 });
 
 // キーがない → 変更しない、null → 空にする。phrase・meaning の null はエラー
-export const updatePhrase = z.object({
-  phrase: z.string().trim().min(1).max(100).optional(),
-  meaning: z.string().trim().min(1).max(200).optional(),
-  example: nullableText(200).optional(),
-  context: nullableText(500).optional(),
-  note: nullableText(800).optional(),
-  source: nullableText(100).optional(),
-  sourceUrl: nullableUrl.optional(),
-});
+export const updatePhrase = createPhrase.partial();
 
 export const phraseIdParam = z.object({
   id: z
