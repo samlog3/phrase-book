@@ -9,7 +9,7 @@ import { AppError } from "./error.js";
  * `AppError` を投げ、`app.onError` でレスポンスにする。
  *
  * @example
- * app.post("/", validator("json", createPhrase), (c) => {
+ * app.post("/", validator("json", createPhraseSchema), (c) => {
  *   const body = c.req.valid("json");
  * });
  */
