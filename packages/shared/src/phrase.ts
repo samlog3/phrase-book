@@ -11,7 +11,7 @@ const nullableText = (max: number) =>
 
 const nullableUrl = trimToNull.pipe(z.httpUrl().max(2048).nullable());
 
-export const createPhrase = z.object({
+export const createPhraseSchema = z.object({
   phrase: z.string().trim().min(1).max(100),
   meaning: z.string().trim().min(1).max(200),
   example: nullableText(200).optional(),
@@ -22,9 +22,9 @@ export const createPhrase = z.object({
 });
 
 // キーがない → 変更しない、null → 空にする。phrase・meaning の null はエラー
-export const updatePhrase = createPhrase.partial();
+export const updatePhraseSchema = createPhraseSchema.partial();
 
-export const phraseIdParam = z.object({
+export const phraseIdParamSchema = z.object({
   id: z
     .string()
     .regex(/^[1-9][0-9]*$/)
@@ -32,6 +32,6 @@ export const phraseIdParam = z.object({
     .pipe(z.number().max(2147483647)),
 });
 
-export type CreatePhraseInput = z.infer<typeof createPhrase>;
-export type UpdatePhraseInput = z.infer<typeof updatePhrase>;
-export type PhraseIdParam = z.infer<typeof phraseIdParam>;
+export type CreatePhraseInput = z.infer<typeof createPhraseSchema>;
+export type UpdatePhraseInput = z.infer<typeof updatePhraseSchema>;
+export type PhraseIdParam = z.infer<typeof phraseIdParamSchema>;
