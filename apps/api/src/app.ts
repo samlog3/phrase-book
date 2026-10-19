@@ -1,12 +1,21 @@
 import { Hono } from "hono";
 import phrases from "./routes/phrases.js";
+import { auth } from "./lib/auth.js";
 import { AppError, errorResponse } from "./lib/error.js";
 import { ERROR_CODE } from "@phrase-book/shared";
 import { HTTPException } from "hono/http-exception";
 
-const app = new Hono().route("/api/phrases", phrases).get("/", (c) => {
-  return c.text("Hello Hono!");
-});
+/**
+ * API 全体の Hono アプリ。ルートは `/api/auth/*`（Better Auth）と `/api/phrases` に分かれる。
+ */
+const app = new Hono()
+  // サインアップ・ログイン・ログアウトなどは Better Auth が処理する。
+  // Better Auth のエラーは `{ message, code }` の形で返り、アプリ共通の `{ error: { code, message } }` とは異なる
+  .on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw))
+  .route("/api/phrases", phrases)
+  .get("/", (c) => {
+    return c.text("Hello Hono!");
+  });
 
 app.notFound((c) => {
   return c.json(errorResponse(ERROR_CODE.NOT_FOUND, "Not found"), 404);
@@ -42,4 +51,5 @@ app.onError((err, c) => {
 });
 
 export default app;
+/** フロントエンドの Hono RPC クライアント（`hc<AppType>`）に渡す、API の型 */
 export type AppType = typeof app;
