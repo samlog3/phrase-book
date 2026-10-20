@@ -95,6 +95,7 @@ describe("GET /api/phrases", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ items: [row] });
+    expect(vi.mocked(listPhrases)).toHaveBeenCalledExactlyOnceWith(userId);
   });
 });
 
