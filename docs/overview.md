@@ -131,7 +131,9 @@ PhraseTag    ※今後の拡張・明示（explicit）の中間テーブル
   - `sourceUrl`：見つけた場所の URL
 - `source` と `sourceUrl` を分けるのは、URL にだけ厳しいチェックをかけるため。`sourceUrl` は画面で `<a href>` として表示するので、`javascript:` などを入れられると XSS になる。zod の `z.httpUrl()` で http / https だけを許可する（`z.url()` だけでは `javascript:` も通ってしまう）
 - MySQL の型：`String` はそのままだと `VARCHAR(191)` になる。`example`・`context`・`note` は `@db.Text`、`sourceUrl` は `@db.VarChar(2048)` にする
-- `userId` は、Better Auth を入れて `User` テーブルができてから（ステップ3・4）マイグレーションで追加する。ステップ1のマイグレーションには含めない
+- `userId` は、Better Auth を入れて `User` テーブルができてから（ステップ4）マイグレーションで追加した。ステップ1のマイグレーションには含めない
+  - `onDelete: Cascade`：ユーザーを削除したら、そのユーザーのフレーズも削除する
+  - 既存の行は、学習用のデータなので削除してからマイグレーションした（`userId` は必須のため、行が残っていると追加に失敗する）
 - 多対多は明示（explicit）の中間テーブルにする。中間テーブルにカラムを追加でき、SQLとの対応が見えるため
 - タグはユーザーごとに持つ。フレーズに紐付けるときは、`phraseId` と `tagId` がどちらも自分のものかをサービス層でチェックする
 
