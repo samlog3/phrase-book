@@ -31,7 +31,7 @@
 | GET      | `/api/public/phrases`     | 公開一覧 | 200 `{ items: PublicPhrase[] }` |
 | GET      | `/api/public/phrases/:id` | 公開詳細 | 200 `PublicPhrase`              |
 
-### 認証（`/api/auth/*`）※ステップ3
+### 認証（`/api/auth/*`）※ステップ3 実装済み
 
 Better Auth のハンドラに任せる。エラーのレスポンスも Better Auth の形のままになり、後述の「エラー」の形には揃えない。
 

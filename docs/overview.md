@@ -181,7 +181,7 @@ PhraseTag    ※今後の拡張・明示（explicit）の中間テーブル
 
 **完了条件**：curlなどで作成・一覧・詳細・更新・削除ができ、不正な入力に400、存在しないIDに404が返る
 
-### 3. 認証API
+### 3. 認証API （完了：2026-10-20）
 
 - Better Authをapiに導入する（Prisma adapter、メールアドレスとパスワード）
 - CORSを設定する（`origin` を明示し、`credentials: true` を指定する）
