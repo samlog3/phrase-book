@@ -22,7 +22,7 @@
 | PATCH    | `/api/phrases/:id` | 更新 | 200 `Phrase`（更新後）    |
 | DELETE   | `/api/phrases/:id` | 削除 | 204（ボディなし）         |
 
-### 公開用（`/api/public/phrases`）※ステップ4
+### 公開用（`/api/public/phrases`）
 
 ログイン不要で、公開されているフレーズだけを扱う。
 
@@ -66,7 +66,7 @@ Better Auth のハンドラに任せる。エラーのレスポンスも Better 
   - 作成時にログイン中のユーザーの ID を保存する。リクエストのボディで指定させない（送られても無視する）
   - ユーザーが削除されたら、そのユーザーのフレーズも削除される（`onDelete: Cascade`）
 
-### PublicPhrase ※ステップ4
+### PublicPhrase
 
 `Phrase` から `note`（自分用のメモ）と `userId` を除いたもの。
 
@@ -175,7 +175,6 @@ JSON Merge Patch（RFC 7396）と同じ考え方にする。
 | 自分用の詳細・更新・削除 | 存在しない、または自分のものでない |
 | 公開用の詳細             | 存在しない、または公開されていない |
 
-- 自分用は実装済み。公開用はステップ4で実装する
 - 公開用は「存在しない」と「非公開」を区別せず、同じ 404 を返す。他人の非公開フレーズの存在を外から推測できないようにするため（自分用と同じ方針）
 - 自分用の一覧は、自分のフレーズだけを返す（他人のフレーズは含まれない）
 - 公開用の詳細は未ログインでも使えるので、401 は返さない
@@ -193,7 +192,7 @@ JSON Merge Patch（RFC 7396）と同じ考え方にする。
   - service：`services/publicPhrases.ts`。自分用の関数に `isPublic` の分岐を足さない（認可の条件を読みやすく保つため）
   - 一覧は `where: { isPublic: true }` を `createdAt` の降順で、詳細は `where: { id, isPublic: true }` で取得し、`null` なら `AppError`（404）を投げる
   - どちらも `select` で `note` と `userId` を取らない
-  - `app.ts` では `/api/public/phrases` にマウントする。未ログインで 200 が返ることを、認証をモックしないテストで確かめる
+  - `app.ts` では `/api/public/phrases` にマウントする。未ログインで 200 が返ることをテストで確かめる。テストでは `auth.api.getSession` を何も返さない（未ログイン扱いの）モックに差し替え、200 になることと `getSession` が呼ばれないことを見る（ミドルウェアがかかっていれば 401 になる）
 - Hono RPC のために、ルートはメソッドをつなげて書き、`app.route()` の戻り値から `AppType` を作る
 - 認証のミドルウェア（`middleware/auth.ts`）は、ログイン必須のルーターの中で `.use()` してかける（例：`routes/phrases.ts`）
   - `app.ts` の `app.use()` や、`/api` にマウントした親ルーターの `.use()` ではかけない。Hono の `app.route()` は子ルーターのミドルウェアをマウント先のパス（`/api/*`）に登録し直すため、同じ `/api` の下にある `/api/public` や `/api/auth` にもかかってしまう
