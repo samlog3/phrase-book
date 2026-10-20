@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 
 /**
- * サインアップ画面。CORS と Cookie の確認用の暫定実装で、ステップ6で作り直す。
+ * サインアップ画面。CORS と Cookie の確認用の暫定実装で、ステップ5で作り直す。
  * 成功するとそのままログイン状態になり（セッションの Cookie が保存される）、トップに戻る。
  */
 export default function Page() {
