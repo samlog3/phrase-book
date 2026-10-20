@@ -14,6 +14,8 @@ datasource db {
 
 model Phrase {
   id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   phrase    String   @db.VarChar(255)
   meaning   String   @db.VarChar(500)
   example   String?  @db.Text
@@ -26,6 +28,7 @@ model Phrase {
   updatedAt DateTime @updatedAt
 
   @@index([isPublic, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model User {
@@ -38,6 +41,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  phrases       Phrase[]
 
   @@unique([email])
   @@map("user")
@@ -55,7 +59,7 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
-  @@index([userId(length: 191)])
+  @@index([userId])
   @@map("session")
 }
 
@@ -75,7 +79,7 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  @@index([userId(length: 191)])
+  @@index([userId])
   @@map("account")
 }
 

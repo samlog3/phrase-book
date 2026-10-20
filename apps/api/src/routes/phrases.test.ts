@@ -11,6 +11,8 @@ import {
   updatePhrase,
 } from "../services/phrases.js";
 
+const userId = "user-1";
+
 // route の責務は「validator が付いているか」「service に何を渡すか」「ステータスと返す形」。
 // 文字数の上限や id の範囲などの細かいルールは schema の側
 // （packages/shared/src/phrase.test.ts）で確かめるので、ここでは validator ごとに1件だけ書く。
@@ -37,7 +39,7 @@ vi.mock("../lib/auth.js", () => ({
 // 未ログインのテストで null にしたあとも、次のテストのためにここで毎回設定し直す。
 beforeEach(() => {
   vi.mocked(auth.api.getSession).mockResolvedValue({
-    user: { id: "user-1" },
+    user: { id: userId },
   } as never);
 });
 
@@ -71,6 +73,20 @@ describe("未ログイン", () => {
   });
 });
 
+// ログイン中のユーザーの id が、そのまま service に渡ることを確かめる
+describe("ログイン中のユーザー", () => {
+  it("別のユーザーでログインしていれば、そのユーザーの id が service に渡る", async () => {
+    vi.mocked(auth.api.getSession).mockResolvedValue({
+      user: { id: "user-2" },
+    } as never);
+    vi.mocked(getPhrase).mockResolvedValue(row as never);
+
+    await app.request("/api/phrases/1");
+
+    expect(vi.mocked(getPhrase)).toHaveBeenCalledExactlyOnceWith(1, "user-2");
+  });
+});
+
 describe("GET /api/phrases", () => {
   it("200、{ items: [...] } の形で返す", async () => {
     vi.mocked(listPhrases).mockResolvedValue([row] as never);
@@ -79,6 +95,7 @@ describe("GET /api/phrases", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ items: [row] });
+    expect(vi.mocked(listPhrases)).toHaveBeenCalledExactlyOnceWith(userId);
   });
 });
 
@@ -94,11 +111,14 @@ describe("POST /api/phrases", () => {
 
     expect(res.status).toBe(201);
     expect(await res.json()).toEqual(row);
-    expect(vi.mocked(createPhrase)).toHaveBeenCalledExactlyOnceWith({
-      phrase: "hello",
-      meaning: "こんにちは",
-      note: null,
-    });
+    expect(vi.mocked(createPhrase)).toHaveBeenCalledExactlyOnceWith(
+      {
+        phrase: "hello",
+        meaning: "こんにちは",
+        note: null,
+      },
+      userId,
+    );
   });
 
   // 公開・非公開は作成時に決めさせない。schema に isPublic を足すと落ちる
@@ -133,7 +153,7 @@ describe("GET /api/phrases/:id", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(row);
-    expect(vi.mocked(getPhrase)).toHaveBeenCalledExactlyOnceWith(1);
+    expect(vi.mocked(getPhrase)).toHaveBeenCalledExactlyOnceWith(1, userId);
   });
 
   it("id が不正 → 400 VALIDATION_ERROR、service は呼ばれない", async () => {
@@ -168,9 +188,11 @@ describe("PATCH /api/phrases/:id", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(row);
-    expect(vi.mocked(updatePhrase)).toHaveBeenCalledExactlyOnceWith(1, {
-      phrase: "new",
-    });
+    expect(vi.mocked(updatePhrase)).toHaveBeenCalledExactlyOnceWith(
+      1,
+      { phrase: "new" },
+      userId,
+    );
   });
 
   it("id が不正 → 400 VALIDATION_ERROR、service は呼ばれない", async () => {
@@ -198,7 +220,7 @@ describe("DELETE /api/phrases/:id", () => {
 
     expect(res.status).toBe(204);
     expect(await res.text()).toBe("");
-    expect(vi.mocked(deletePhrase)).toHaveBeenCalledExactlyOnceWith(1);
+    expect(vi.mocked(deletePhrase)).toHaveBeenCalledExactlyOnceWith(1, userId);
   });
 
   it("id が不正 → 400 VALIDATION_ERROR、service は呼ばれない", async () => {

@@ -18,20 +18,23 @@ import { sessionMiddleware } from "../middleware/auth.js";
 const phrases = new Hono()
   .use(sessionMiddleware)
   .get("/", async (c) => {
-    const result = await listPhrases();
+    const userId = c.get("user").id;
+    const result = await listPhrases(userId);
     // ステップ5でページネーションの情報を足すため、配列をそのまま返さず { items } で包む
     return c.json({ items: result }, 200);
   })
   // バリデーションに失敗したら validator が AppError を投げ、ハンドラは実行されない
   .post("/", validator("json", createPhraseSchema), async (c) => {
     const input = c.req.valid("json");
-    const phrase = await createPhrase(input);
+    const userId = c.get("user").id;
+    const phrase = await createPhrase(input, userId);
     return c.json(phrase, 201);
   })
-  // 存在しない ID のときは service が AppError（404）を投げるので、ここでは成功時だけ書く
+  // 存在しない ID や他人のフレーズのときは service が AppError（404）を投げるので、ここでは成功時だけ書く
   .get("/:id", validator("param", phraseIdParamSchema), async (c) => {
     const { id } = c.req.valid("param");
-    const phrase = await getPhrase(id);
+    const userId = c.get("user").id;
+    const phrase = await getPhrase(id, userId);
     return c.json(phrase, 200);
   })
   .patch(
@@ -42,13 +45,15 @@ const phrases = new Hono()
     async (c) => {
       const { id } = c.req.valid("param");
       const input = c.req.valid("json");
-      const phrase = await updatePhrase(id, input);
+      const userId = c.get("user").id;
+      const phrase = await updatePhrase(id, input, userId);
       return c.json(phrase, 200);
     },
   )
   .delete("/:id", validator("param", phraseIdParamSchema), async (c) => {
     const { id } = c.req.valid("param");
-    await deletePhrase(id);
+    const userId = c.get("user").id;
+    await deletePhrase(id, userId);
     // 204 はボディを持てないので、c.json ではなく c.body(null) で返す
     return c.body(null, 204);
   });

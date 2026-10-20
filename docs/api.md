@@ -31,7 +31,7 @@
 | GET      | `/api/public/phrases`     | 公開一覧 | 200 `{ items: PublicPhrase[] }` |
 | GET      | `/api/public/phrases/:id` | 公開詳細 | 200 `PublicPhrase`              |
 
-### 認証（`/api/auth/*`）※ステップ3
+### 認証（`/api/auth/*`）※ステップ3 実装済み
 
 Better Auth のハンドラに任せる。エラーのレスポンスも Better Auth の形のままになり、後述の「エラー」の形には揃えない。
 
@@ -62,7 +62,9 @@ Better Auth のハンドラに任せる。エラーのレスポンスも Better 
 }
 ```
 
-- `userId` はステップ4で追加する。Better Auth の `User.id` に合わせて文字列にする
+- `userId` はフレーズを作成したユーザー。Better Auth の `User.id` に合わせて文字列にする
+  - 作成時にログイン中のユーザーの ID を保存する。リクエストのボディで指定させない（送られても無視する）
+  - ユーザーが削除されたら、そのユーザーのフレーズも削除される（`onDelete: Cascade`）
 
 ### PublicPhrase ※ステップ4
 
@@ -159,7 +161,7 @@ JSON Merge Patch（RFC 7396）と同じ考え方にする。
 
 **401（認証）→ 400（バリデーション）→ 404（存在と権限）** の順に判定する。ミドルウェアの順番（認証 → `zValidator` → ハンドラ）がそのままこの順番になる。
 
-### 404 を返す場合 ※認可はステップ4
+### 404 を返す場合
 
 権限がない場合も 404 を返し、リソースが存在するかどうかを隠す。
 
@@ -168,6 +170,8 @@ JSON Merge Patch（RFC 7396）と同じ考え方にする。
 | 自分用の詳細・更新・削除 | 存在しない、または自分のものでない |
 | 公開用の詳細             | 存在しない、または公開されていない |
 
+- 自分用は実装済み。公開用はステップ4で実装する
+- 自分用の一覧は、自分のフレーズだけを返す（他人のフレーズは含まれない）
 - 公開用の詳細は未ログインでも使えるので、401 は返さない
 
 ## 実装の方針
@@ -175,6 +179,9 @@ JSON Merge Patch（RFC 7396）と同じ考え方にする。
 - 層は route → service → Prisma に分ける
   - route：パスの定義、バリデーション、service の呼び出し、レスポンスを返す。ハンドラはその場で書き、名前付きの関数に切り出さない（Hono の型推論を効かせるため）
   - service：ビジネスロジックと認可のチェック。`services/phrases.ts` に関数を並べて export する。Hono の `Context` は受け取らず、値だけを受け取る
+- 認可（自分のフレーズだけを扱う）
+  - route が `c.get("user").id` を取り出し、service に `userId` として渡す（引数の最後に置く）
+  - service は、作成時に `data` へ `userId` を入れ、一覧・詳細・更新・削除では `where` に `userId` を入れる。「自分のものでない」と「存在しない」を区別せず、同じ 404 になる
 - Hono RPC のために、ルートはメソッドをつなげて書き、`app.route()` の戻り値から `AppType` を作る
 - 認証のミドルウェア（`middleware/auth.ts`）は、ログイン必須のルーターの中で `.use()` してかける（例：`routes/phrases.ts`）
   - `app.ts` の `app.use()` や、`/api` にマウントした親ルーターの `.use()` ではかけない。Hono の `app.route()` は子ルーターのミドルウェアをマウント先のパス（`/api/*`）に登録し直すため、同じ `/api` の下にある `/api/public` や `/api/auth` にもかかってしまう
@@ -182,5 +189,7 @@ JSON Merge Patch（RFC 7396）と同じ考え方にする。
 - エラーは自前の `AppError`（`status`・`code`・`message`）で投げ、`app.onError` でレスポンスの形に変換する
 - `zValidator` は hook の中で throw するラッパーを作って使い、バリデーションエラーも `onError` にまとめる
 - 404 の判定
-  - 読む処理：取得して `null` なら `AppError` を投げる
-  - 更新・削除：`update` / `delete` を直接実行し、Prisma の P2025 を **service の中で** `AppError`（404）に変える。それ以外のエラーはそのまま投げ直す
+  - 読む処理：`where: { id, userId }` で取得して `null` なら `AppError` を投げる
+  - 更新・削除：`where: { id, userId }` で `update` / `delete` を直接実行し、Prisma の P2025 を **service の中で** `AppError`（404）に変える。それ以外のエラーはそのまま投げ直す
+    - 他人のフレーズは条件に合うレコードがないので、存在しない ID と同じ P2025 になる
+    - `update` / `delete` の `where` に `id` 以外の項目を足せるのは Prisma 5 以降
