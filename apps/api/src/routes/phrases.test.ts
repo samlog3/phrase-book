@@ -1,6 +1,7 @@
 import { ERROR_CODE } from "@phrase-book/shared";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import app from "../app.js";
+import { auth } from "../lib/auth.js";
 import { AppError } from "../lib/error.js";
 import {
   createPhrase,
@@ -25,6 +26,21 @@ vi.mock("../services/phrases.js", () => ({
   deletePhrase: vi.fn(),
 }));
 
+// sessionMiddleware 本体は動かしたまま、セッションを返す getSession だけを差し替える。
+// こうすると「ログイン済み」「未ログイン（401）」を getSession の戻り値で切り替えられる。
+// auth.handler など、ほかのプロパティは route のテストでは使わないので用意しない。
+vi.mock("../lib/auth.js", () => ({
+  auth: { api: { getSession: vi.fn() } },
+}));
+
+// 既定は「ログイン済み」。clearAllMocks は戻り値の設定を消さないので、
+// 未ログインのテストで null にしたあとも、次のテストのためにここで毎回設定し直す。
+beforeEach(() => {
+  vi.mocked(auth.api.getSession).mockResolvedValue({
+    user: { id: "user-1" },
+  } as never);
+});
+
 // vi.fn() の呼び出し履歴をテストごとに消す。
 // （restoreAllMocks は vi.spyOn 用。vi.fn() の履歴を消すのは clearAllMocks）
 afterEach(() => {
@@ -41,6 +57,19 @@ const sendJson = (method: string, path: string, body: unknown) =>
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+
+// ミドルウェアは phrases router 全体にかかっているので、代表で GET /api/phrases だけ確かめる
+describe("未ログイン", () => {
+  it("401 UNAUTHORIZED、service は呼ばれない", async () => {
+    vi.mocked(auth.api.getSession).mockResolvedValue(null);
+
+    const res = await app.request("/api/phrases");
+
+    expect(res.status).toBe(401);
+    expect((await res.json()).error.code).toBe("UNAUTHORIZED");
+    expect(vi.mocked(listPhrases)).not.toHaveBeenCalled();
+  });
+});
 
 describe("GET /api/phrases", () => {
   it("200、{ items: [...] } の形で返す", async () => {
