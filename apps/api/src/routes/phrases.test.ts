@@ -121,8 +121,8 @@ describe("POST /api/phrases", () => {
     );
   });
 
-  // 公開・非公開は作成時に決めさせない。schema に isPublic を足すと落ちる
-  it("isPublic を送っても service に渡らない", async () => {
+  // 作成時にも公開・非公開を決められる。schema から isPublic を外すと落ちる
+  it("isPublic を送ると、その値が service に渡る", async () => {
     vi.mocked(createPhrase).mockResolvedValue(row as never);
 
     const res = await sendJson("POST", "/api/phrases", {
@@ -133,7 +133,7 @@ describe("POST /api/phrases", () => {
 
     expect(res.status).toBe(201);
     const input = vi.mocked(createPhrase).mock.calls[0]![0];
-    expect(input).not.toHaveProperty("isPublic");
+    expect(input).toHaveProperty("isPublic", true);
   });
 
   it("body が不正 → 400 VALIDATION_ERROR、service は呼ばれない", async () => {
@@ -191,6 +191,20 @@ describe("PATCH /api/phrases/:id", () => {
     expect(vi.mocked(updatePhrase)).toHaveBeenCalledExactlyOnceWith(
       1,
       { phrase: "new" },
+      userId,
+    );
+  });
+
+  // 更新でも公開・非公開を切り替えられる。schema から isPublic を外すと落ちる
+  it("isPublic を送ると、その値が service に渡る", async () => {
+    vi.mocked(updatePhrase).mockResolvedValue(row as never);
+
+    const res = await sendJson("PATCH", "/api/phrases/1", { isPublic: false });
+
+    expect(res.status).toBe(200);
+    expect(vi.mocked(updatePhrase)).toHaveBeenCalledExactlyOnceWith(
+      1,
+      { isPublic: false },
       userId,
     );
   });
