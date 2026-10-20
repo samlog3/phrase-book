@@ -6,10 +6,12 @@ import { ERROR_CODE } from "@phrase-book/shared";
 import { HTTPException } from "hono/http-exception";
 import { cors } from "hono/cors";
 import { webOrigin } from "./lib/env.js";
+import publicPhrases from "./routes/publicPhrases.js";
 
 /**
- * API 全体の Hono アプリ。ルートは `/api/auth/*`（Better Auth）と `/api/phrases` に分かれる。
+ * API 全体の Hono アプリ。ルートは `/api/auth/*`（Better Auth）、`/api/phrases`、`/api/public/phrases` に分かれる。
  * `/api/phrases` はログイン必須で、認証のミドルウェアは phrases ルーターの中でかけている。
+ * `/api/public/phrases` はログイン不要で、認証のミドルウェアをかけない。
  */
 const app = new Hono()
   // フロントからの Cookie 付きリクエストを受けるため、origin を明示して credentials を許可する。
@@ -27,6 +29,7 @@ const app = new Hono()
   // Better Auth のエラーは `{ message, code }` の形で返り、アプリ共通の `{ error: { code, message } }` とは異なる
   .on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw))
   .route("/api/phrases", phrases)
+  .route("/api/public/phrases", publicPhrases)
   .get("/", (c) => {
     return c.text("Hello Hono!");
   });

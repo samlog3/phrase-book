@@ -19,6 +19,8 @@ export const createPhraseSchema = z.object({
   note: nullableText(800).optional(),
   source: nullableText(100).optional(),
   sourceUrl: nullableUrl.optional(),
+  // 真偽値のみ。null は空にする意味がないので受け付けない（省略時は作成なら非公開、更新なら変更しない）
+  isPublic: z.boolean().optional(),
 });
 
 // キーがない → 変更しない、null → 空にする。phrase・meaning の null はエラー
