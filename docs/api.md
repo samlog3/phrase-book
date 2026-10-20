@@ -176,6 +176,9 @@ JSON Merge Patch（RFC 7396）と同じ考え方にする。
   - route：パスの定義、バリデーション、service の呼び出し、レスポンスを返す。ハンドラはその場で書き、名前付きの関数に切り出さない（Hono の型推論を効かせるため）
   - service：ビジネスロジックと認可のチェック。`services/phrases.ts` に関数を並べて export する。Hono の `Context` は受け取らず、値だけを受け取る
 - Hono RPC のために、ルートはメソッドをつなげて書き、`app.route()` の戻り値から `AppType` を作る
+- 認証のミドルウェア（`middleware/auth.ts`）は、ログイン必須のルーターの中で `.use()` してかける（例：`routes/phrases.ts`）
+  - `app.ts` の `app.use()` や、`/api` にマウントした親ルーターの `.use()` ではかけない。Hono の `app.route()` は子ルーターのミドルウェアをマウント先のパス（`/api/*`）に登録し直すため、同じ `/api` の下にある `/api/public` や `/api/auth` にもかかってしまう
+  - ルーターの中でかけると、ハンドラの `c.get("user")` にミドルウェアの型が付く
 - エラーは自前の `AppError`（`status`・`code`・`message`）で投げ、`app.onError` でレスポンスの形に変換する
 - `zValidator` は hook の中で throw するラッパーを作って使い、バリデーションエラーも `onError` にまとめる
 - 404 の判定
