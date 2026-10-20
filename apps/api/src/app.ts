@@ -9,6 +9,7 @@ import { webOrigin } from "./lib/env.js";
 
 /**
  * API 全体の Hono アプリ。ルートは `/api/auth/*`（Better Auth）と `/api/phrases` に分かれる。
+ * `/api/phrases` はログイン必須で、認証のミドルウェアは phrases ルーターの中でかけている。
  */
 const app = new Hono()
   // フロントからの Cookie 付きリクエストを受けるため、origin を明示して credentials を許可する。

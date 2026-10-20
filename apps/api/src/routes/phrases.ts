@@ -12,9 +12,11 @@ import {
   phraseIdParamSchema,
   updatePhraseSchema,
 } from "@phrase-book/shared";
+import { sessionMiddleware } from "../middleware/auth.js";
 
 // RPC の型推論を効かせるため、メソッドはつなげて書き、ハンドラもその場で書く
 const phrases = new Hono()
+  .use(sessionMiddleware)
   .get("/", async (c) => {
     const result = await listPhrases();
     // ステップ5でページネーションの情報を足すため、配列をそのまま返さず { items } で包む
