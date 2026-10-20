@@ -96,7 +96,7 @@ export async function updatePhrase(
  * @param userId ログイン中のユーザー ID
  * @throws {AppError} フレーズが存在しない、または他人のフレーズのとき（404 `NOT_FOUND`）
  */
-export async function deletePhrase(id: number, userId: string) {  
+export async function deletePhrase(id: number, userId: string) {
   try {
     const result = await prisma.phrase.delete({
       where: {

@@ -30,7 +30,7 @@ const phrases = new Hono()
     const phrase = await createPhrase(input, userId);
     return c.json(phrase, 201);
   })
-  // 存在しない ID のときは service が AppError（404）を投げるので、ここでは成功時だけ書く
+  // 存在しない ID や他人のフレーズのときは service が AppError（404）を投げるので、ここでは成功時だけ書く
   .get("/:id", validator("param", phraseIdParamSchema), async (c) => {
     const { id } = c.req.valid("param");
     const userId = c.get("user").id;
