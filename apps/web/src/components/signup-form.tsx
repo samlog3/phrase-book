@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,6 +15,10 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
+/**
+ * サインアップフォームの見た目。送信時の処理は呼び出し側が `onSubmit` で渡す。
+ * 入力値は `FormData` で取り出せるよう、各 input に `name` を付けている。
+ */
 export function SignupForm({ ...props }: React.ComponentProps<"form">) {
   return (
     <Card>
@@ -61,7 +66,7 @@ export function SignupForm({ ...props }: React.ComponentProps<"form">) {
               <Field>
                 <Button type="submit">Create Account</Button>
                 <FieldDescription className="px-6 text-center">
-                  Already have an account? <a href="#">Sign in</a>
+                  Already have an account? <Link href="/login">Sign in</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>
