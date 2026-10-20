@@ -54,6 +54,26 @@ describe("createPhraseSchema", () => {
 
     expect(createPhraseSchema.safeParse(input).success).toBe(true);
   });
+
+  it.each([true, false])("isPublic: %s はそのまま通る", (isPublic) => {
+    const result = createPhraseSchema.parse({
+      phrase: "p",
+      meaning: "m",
+      isPublic,
+    });
+
+    expect(result).toEqual({ phrase: "p", meaning: "m", isPublic });
+  });
+
+  it.each([
+    ["null", null],
+    ["文字列の true", "true"],
+    ["数値の 1", 1],
+  ])("isPublic が %s → 失敗", (_name, isPublic) => {
+    const input = { phrase: "p", meaning: "m", isPublic };
+
+    expect(createPhraseSchema.safeParse(input).success).toBe(false);
+  });
 });
 
 describe("updatePhraseSchema", () => {
@@ -67,6 +87,18 @@ describe("updatePhraseSchema", () => {
 
   it("任意項目の null は null のまま通る（空にする）", () => {
     expect(updatePhraseSchema.parse({ note: null })).toEqual({ note: null });
+  });
+
+  it("isPublic だけでも通る", () => {
+    expect(updatePhraseSchema.parse({ isPublic: true })).toEqual({
+      isPublic: true,
+    });
+  });
+
+  it("isPublic: null → 失敗（空にする意味がない）", () => {
+    expect(updatePhraseSchema.safeParse({ isPublic: null }).success).toBe(
+      false,
+    );
   });
 });
 
