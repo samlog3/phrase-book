@@ -1,3 +1,3 @@
 export const PASSWORD_MIN_LENGTH = 8;
-export * from "./phrase.js";
-export * from "./errors.js";
+export * from "./phrase.ts";
+export * from "./errors.ts";
