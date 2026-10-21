@@ -1,6 +1,6 @@
+import { Suspense } from "react";
 import { LoginView } from "@/components/login-view";
 import { getSafeRedirect } from "@/lib/redirect";
-import { Suspense } from "react";
 
 type LoginPageProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

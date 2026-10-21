@@ -10,15 +10,16 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
-  FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import type { LoginFieldErrors } from "@/lib/schemas/auth";
 
 type LoginFormProps = React.ComponentProps<"form"> & {
   pending: boolean;
-  fieldErrors?: { email?: string[]; password?: string[] };
+  fieldErrors?: LoginFieldErrors;
   serverError?: string;
   signupHref: string;
 };

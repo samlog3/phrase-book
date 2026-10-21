@@ -5,13 +5,8 @@ import { useState, type FormEvent } from "react";
 import * as z from "zod";
 import { SignupForm } from "@/components/signup-form";
 import { authClient } from "@/lib/auth-client";
-import { getAuthErrorMessage } from "@/lib/auth-errors";
-import { signupSchema } from "@/lib/schemas/auth";
-
-type FieldErrors = { name?: string[]; email?: string[]; password?: string[] };
-
-const NETWORK_ERROR_MESSAGE =
-  "通信に失敗しました。ネットワークを確認してもう一度お試しください";
+import { getAuthErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/auth-errors";
+import { signupSchema, type SignupFieldErrors } from "@/lib/schemas/auth";
 
 /**
  * サインアップ画面の振る舞い。入力の検証、送信、エラー表示の状態を持つ。
@@ -26,7 +21,7 @@ export function SignupView({
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [fieldErrors, setFieldErrors] = useState<SignupFieldErrors>({});
   const [serverError, setServerError] = useState<string>();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {

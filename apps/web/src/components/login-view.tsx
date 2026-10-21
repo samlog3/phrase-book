@@ -2,16 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import * as z from "zod";
 import { LoginForm } from "@/components/login-form";
 import { authClient } from "@/lib/auth-client";
-import { getAuthErrorMessage } from "@/lib/auth-errors";
-import { loginSchema } from "@/lib/schemas/auth";
-import * as z from "zod";
-
-type FieldErrors = { email?: string[]; password?: string[] };
-
-const NETWORK_ERROR_MESSAGE =
-  "通信に失敗しました。ネットワークを確認してもう一度お試しください";
+import { getAuthErrorMessage, NETWORK_ERROR_MESSAGE } from "@/lib/auth-errors";
+import { loginSchema, type LoginFieldErrors } from "@/lib/schemas/auth";
 
 /**
  * ログイン画面の振る舞い。入力の検証、送信、エラー表示の状態を持つ。
@@ -26,7 +21,7 @@ export function LoginView({
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
   const [serverError, setServerError] = useState<string>();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {

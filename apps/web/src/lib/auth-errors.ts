@@ -1,6 +1,10 @@
 const FALLBACK_MESSAGE =
   "エラーが発生しました。しばらくしてからもう一度お試しください";
 
+// authClient が例外を投げたとき（api に届かなかったとき）の文言。エラーコードがないので MESSAGES とは別にする
+export const NETWORK_ERROR_MESSAGE =
+  "通信に失敗しました。ネットワークを確認してもう一度お試しください";
+
 const ALREADY_EXISTS_MESSAGE = "このメールアドレスは既に登録されています";
 
 // 割り切り: Better Auth の全エラーコードは列挙せず、画面で区別したいものだけ載せる。

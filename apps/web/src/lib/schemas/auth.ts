@@ -22,3 +22,11 @@ export const loginSchema = z.object({
   email: signupSchema.shape.email,
   password: z.string().min(1, { error: "パスワードを入力してください" }),
 });
+
+// z.flattenError(...).fieldErrors の型。スキーマに項目を足すとフォームの型も追従する
+type FieldErrorsOf<S extends z.ZodType> = z.core.$ZodFlattenedError<
+  z.infer<S>
+>["fieldErrors"];
+
+export type SignupFieldErrors = FieldErrorsOf<typeof signupSchema>;
+export type LoginFieldErrors = FieldErrorsOf<typeof loginSchema>;
