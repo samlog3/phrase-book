@@ -43,9 +43,9 @@ export function SignupForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create an account</CardTitle>
+        <CardTitle>アカウントを作成</CardTitle>
         <CardDescription>
-          Enter your information below to create your account
+          名前・メールアドレス・パスワードを入力してください
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -53,14 +53,14 @@ export function SignupForm({
           <FieldGroup>
             {serverError && <FieldError>{serverError}</FieldError>}
             <Field>
-              <FieldLabel htmlFor="name">Name</FieldLabel>
+              <FieldLabel htmlFor="name">名前</FieldLabel>
               <Input
                 id="name"
                 name="name"
                 type="text"
                 aria-invalid={!!fieldErrors?.name}
                 aria-describedby={fieldErrors?.name ? "name-error" : undefined}
-                placeholder="John"
+                placeholder="山田 太郎"
                 required
               />
               {fieldErrors?.name && (
@@ -68,7 +68,7 @@ export function SignupForm({
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <FieldLabel htmlFor="email">メールアドレス</FieldLabel>
               <Input
                 id="email"
                 name="email"
@@ -84,12 +84,11 @@ export function SignupForm({
                 <FieldError id="email-error">{fieldErrors.email[0]}</FieldError>
               )}
               <FieldDescription id="email-hint">
-                We&apos;ll use this to contact you. We will not share your email
-                with anyone else.
+                ログインに使います。他のユーザーには公開されません。
               </FieldDescription>
             </Field>
             <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <FieldLabel htmlFor="password">パスワード</FieldLabel>
               <Input
                 id="password"
                 name="password"
@@ -108,16 +107,16 @@ export function SignupForm({
                 </FieldError>
               )}
               <FieldDescription id="password-hint">
-                Must be at least {PASSWORD_MIN_LENGTH} characters long.
+                {PASSWORD_MIN_LENGTH}文字以上で入力してください。
               </FieldDescription>
             </Field>
             <FieldGroup>
               <Field>
                 <Button type="submit" disabled={pending}>
-                  {pending ? "作成中..." : "Create Account"}
+                  {pending ? "作成中..." : "アカウントを作成"}
                 </Button>
                 <FieldDescription className="px-6 text-center">
-                  Already have an account? <Link href={loginHref}>Sign in</Link>
+                  アカウントをお持ちの方は <Link href={loginHref}>ログイン</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

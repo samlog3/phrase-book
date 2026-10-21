@@ -41,9 +41,9 @@ export function LoginForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Login to your account</CardTitle>
+        <CardTitle>ログイン</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account
+          メールアドレスとパスワードを入力してください
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -51,7 +51,7 @@ export function LoginForm({
           <FieldGroup>
             {serverError && <FieldError>{serverError}</FieldError>}
             <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <FieldLabel htmlFor="email">メールアドレス</FieldLabel>
               <Input
                 id="email"
                 name="email"
@@ -68,7 +68,7 @@ export function LoginForm({
               )}
             </Field>
             <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <FieldLabel htmlFor="password">パスワード</FieldLabel>
               <Input
                 id="password"
                 name="password"
@@ -87,11 +87,11 @@ export function LoginForm({
             </Field>
             <Field>
               <Button type="submit" disabled={pending}>
-                {pending ? "ログイン中..." : "Login"}
+                {pending ? "ログイン中..." : "ログイン"}
               </Button>
               <FieldDescription className="text-center">
-                Don&apos;t have an account?{" "}
-                <Link href={signupHref}>Sign up</Link>
+                アカウントをお持ちでない方は{" "}
+                <Link href={signupHref}>新規登録</Link>
               </FieldDescription>
             </Field>
           </FieldGroup>
