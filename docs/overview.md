@@ -88,7 +88,7 @@ phrase-book/
       src/
         phrase.ts          フレーズの zod スキーマと、そこから作る型
         errors.ts          エラーコード（ERROR_CODE）
-        index.ts           PAGE_SIZE などの定数と、上の2つの再 export
+        index.ts           パスワードの文字数などの定数と、上の2つの再 export
   compose.yaml             MySQL
   pnpm-workspace.yaml      apps/*, packages/*
   tsconfig.base.json       共通のコンパイラ設定

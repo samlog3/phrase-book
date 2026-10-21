@@ -10,7 +10,7 @@ import { loginSchema, type LoginFieldErrors } from "@/lib/schemas/auth";
 
 /**
  * ログイン画面の振る舞い。入力の検証、送信、エラー表示の状態を持つ。
- * 見た目は `LoginForm` に任せる。
+ * 見た目は `LoginForm` に任せる。成功すると `redirectTo` に移動する。
  */
 export function LoginView({
   redirectTo,
@@ -50,6 +50,7 @@ export function LoginView({
       }
       // 成功時は pending を戻さない。遷移が終わるまでボタンを押せないままにして二重送信を防ぐ
       router.push(redirectTo);
+      // ログインで Cookie が変わったので、Server Component を描画し直してログイン状態を反映する
       router.refresh();
     } catch {
       setServerError(NETWORK_ERROR_MESSAGE);

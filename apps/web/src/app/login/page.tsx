@@ -9,7 +9,7 @@ type LoginPageProps = {
 /**
  * ログイン画面。`?redirect=` を検証してログイン後の遷移先を決め、`LoginView` に渡す。
  * 安全でない値（外部 URL など）は `getSafeRedirect` により "/" になる。
- * Signup へのリンクにも遷移先を引き継ぐ。
+ * サインアップへのリンクにも遷移先を引き継ぐ。
  */
 export default function Page({ searchParams }: LoginPageProps) {
   return (

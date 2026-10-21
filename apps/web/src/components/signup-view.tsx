@@ -51,6 +51,7 @@ export function SignupView({
       }
       // 成功時は pending を戻さない。遷移が終わるまでボタンを押せないままにして二重送信を防ぐ
       router.push(redirectTo);
+      // サインアップでログイン状態になり Cookie が変わったので、Server Component を描画し直して反映する
       router.refresh();
     } catch {
       setServerError(NETWORK_ERROR_MESSAGE);
