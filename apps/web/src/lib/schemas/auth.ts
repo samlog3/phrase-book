@@ -1,4 +1,4 @@
-import { PASSWORD_MIN_LENGTH } from "@phrase-book/shared";
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "@phrase-book/shared";
 import * as z from "zod";
 
 export const signupSchema = z.object({
@@ -8,9 +8,14 @@ export const signupSchema = z.object({
     .trim()
     .min(1, { error: "メールアドレスを入力してください" })
     .pipe(z.email({ error: "メールアドレスの形式が正しくありません" })),
-  password: z.string().min(PASSWORD_MIN_LENGTH, {
-    error: `パスワードは${PASSWORD_MIN_LENGTH}文字以上で入力してください`,
-  }),
+  password: z
+    .string()
+    .min(PASSWORD_MIN_LENGTH, {
+      error: `パスワードは${PASSWORD_MIN_LENGTH}文字以上で入力してください`,
+    })
+    .max(PASSWORD_MAX_LENGTH, {
+      error: `パスワードは${PASSWORD_MAX_LENGTH}文字以内で入力してください`,
+    }),
 });
 
 export const loginSchema = z.object({
