@@ -35,6 +35,8 @@
 
 Better Auth のハンドラに任せる。エラーのレスポンスも Better Auth の形のままになり、後述の「エラー」の形には揃えない。
 
+- 既知の割り切り：アカウント列挙の対策はしていない。サインアップで登録済みのメールアドレスを使うと `USER_ALREADY_EXISTS` 系のエラーが返り、画面にもそのまま表示するため、登録の有無を外部から調べられる。本番では `emailAndPassword` の `autoSignIn: false` または `requireEmailVerification: true` を検討する
+
 ### 補足
 
 - 一覧は `createdAt` の降順で返す
