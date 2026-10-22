@@ -8,7 +8,7 @@ import { getPublicPhrase, listPublicPhrases } from "./publicPhrases.js";
 // ・where に isPublic: true を入れていること（非公開が混ざらない）
 // ・select に note と userId が入っていないこと（公開してはいけない項目が漏れない）
 // ・null → 404 の分岐
-// 実際に絞り込めるかは、DB を使うテスト（ステップ8）か curl で確かめる。
+// 実際に絞り込めるかは、DB を使うテスト（ステップ7）か curl で確かめる。
 
 afterEach(() => {
   vi.restoreAllMocks();

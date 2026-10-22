@@ -20,7 +20,7 @@ const phrases = new Hono()
   .get("/", async (c) => {
     const userId = c.get("user").id;
     const result = await listPhrases(userId);
-    // ステップ5でページネーションの情報を足すため、配列をそのまま返さず { items } で包む
+    // ステップ9でページネーションの情報を足すため、配列をそのまま返さず { items } で包む
     return c.json({ items: result }, 200);
   })
   // バリデーションに失敗したら validator が AppError を投げ、ハンドラは実行されない

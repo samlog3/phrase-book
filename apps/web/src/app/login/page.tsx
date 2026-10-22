@@ -1,36 +1,39 @@
-"use client";
-import { LoginForm } from "@/components/login-form";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
+import { Suspense } from "react";
+import { LoginView } from "@/components/login-view";
+import { getSafeRedirect } from "@/lib/redirect";
+
+type LoginPageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
 /**
- * ログイン画面。CORS と Cookie の確認用の暫定実装で、ステップ6で作り直す。
- * 成功するとセッションの Cookie が保存され、トップに戻る。
+ * ログイン画面。`?redirect=` を検証してログイン後の遷移先を決め、`LoginView` に渡す。
+ * 安全でない値（外部 URL など）は `getSafeRedirect` により "/" になる。
+ * サインアップへのリンクにも遷移先を引き継ぐ。
  */
-export default function Page() {
-  const router = useRouter();
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    // ブラウザ標準の送信（ページ遷移）を止めて、authClient で送る
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email"));
-    const password = String(formData.get("password"));
-
-    const { error } = await authClient.signIn.email({ email, password });
-    // 暫定実装なので、エラーは画面に出さずコンソールに出すだけにしている
-    if (error) {
-      console.error(error);
-      return;
-    }
-    router.push("/");
-  }
+export default function Page({ searchParams }: LoginPageProps) {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <LoginForm onSubmit={onSubmit} />
+        <Suspense fallback={null}>
+          <LoginContent searchParams={searchParams} />
+        </Suspense>
       </div>
     </div>
   );
+}
+
+/**
+ * `searchParams` は実行時にしか分からないため、`await` はこのコンポーネントに閉じ込め、
+ * `Page` 側の `<Suspense>` で包む。外側のレイアウトは静的な殻として先に描画される。
+ */
+async function LoginContent({ searchParams }: LoginPageProps) {
+  const { redirect } = await searchParams;
+  const redirectTo = getSafeRedirect(redirect);
+  const signupHref =
+    redirectTo === "/"
+      ? "/signup"
+      : `/signup?redirect=${encodeURIComponent(redirectTo)}`;
+
+  return <LoginView redirectTo={redirectTo} signupHref={signupHref} />;
 }
