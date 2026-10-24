@@ -14,7 +14,7 @@
 | 段               | 確かめること                              | 未ログインのとき                     |
 | ---------------- | ----------------------------------------- | ------------------------------------ |
 | Proxy            | Cookie があるか（中身は確かめない）       | `/login?redirect=<元のパス>` へ 307  |
-| Server Component | セッションが有効か（`requireSession` が api の get-session を呼ぶ） | `/login` へ移動する |
+| Server Component | セッションが有効か（`requireSession` が api の get-session を呼ぶ） | `/login` へ移動する（`returnTo` を渡すと `?redirect=` 付き） |
 | Hono             | セッションと、本人のデータか              | 401 / 404                            |
 
 - 実装の場所
