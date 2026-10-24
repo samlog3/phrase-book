@@ -39,6 +39,7 @@ export function AuthButton() {
     } catch (error) {
       console.error("ログアウトに失敗しました", error);
     } finally {
+      // 学習用として、失敗してもトップへ戻す。保護画面に留まらないようにするため。
       // 戻るボタンでキャッシュから保護画面が表示されないよう、ページごと読み込み直す。
       // router.push だと Client Cache が残り、Proxy を通らない
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
