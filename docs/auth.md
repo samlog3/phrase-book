@@ -14,9 +14,14 @@
 | 段               | 確かめること                              | 未ログインのとき                     |
 | ---------------- | ----------------------------------------- | ------------------------------------ |
 | Proxy            | Cookie があるか（中身は確かめない）       | `/login?redirect=<元のパス>` へ 307  |
-| Server Component | セッションが有効か（DAL 関数で get-session） | `/login` へ移動する                  |
+| Server Component | セッションが有効か（`requireSession` が api の get-session を呼ぶ） | `/login` へ移動する |
 | Hono             | セッションと、本人のデータか              | 401 / 404                            |
 
+- 実装の場所
+  - Proxy：`apps/web/src/proxy.ts`
+  - Server Component 用の関数：`apps/web/src/lib/session.ts`
+    - `getSession`：api に問い合わせて、有効なら `{ userId, email }`、なければ `null` を返す。移動はしない。`cache()` で包んであり、同じ描画中は api への問い合わせが 1 回で済む
+    - `requireSession(returnTo?)`：`getSession` を呼び、未ログインなら `/login` へ移動する。`returnTo` を渡すと `?redirect=` に入る。保護された画面ではこちらを使う
 - Proxy は Cookie があるかしか見ない。期限切れや偽の Cookie でも通るため、Server Component でも確かめる
 - Proxy では api に問い合わせない。Proxy はプリフェッチを含むすべてのリクエストで動くため
 - Proxy を置くのは、元のパスを `?redirect=` に入れて、描画の前に 307 で移動するため。Server Component からは今のパスを取れない
@@ -27,6 +32,7 @@
 
 公開してよい画面（`/`、`/login`、`/signup`、`/public`、`/public/*`）だけを列挙し、それ以外はすべて保護する。画面を追加したときに列挙を忘れても、保護される側に倒れるようにするため。
 
+- 現在の実装（`proxy.ts` の `publicRoutes`）は `/`、`/login`、`/signup` の完全一致だけ。`[id]` の部分は完全一致では通らないため、前方一致で判定する形に直す必要がある
 - 静的ファイル（`_next/static`、画像など）は `matcher` で Proxy の対象から外す
 - 存在しないパスを未ログインで開くと、404 ではなくログイン画面に移動する
 
@@ -40,7 +46,7 @@
 | ログアウトした                               | `/`（ページごと再読み込みする）                            |
 
 - ログイン済みの人の既定の移動先を `/phrases` にするのは、`/` が紹介ページで、ログインした人がそこでやることがないため
-- ログイン済みの人を `/login` から移す判定は、Proxy ではなくページの Server Component（get-session）で行う。Proxy の Cookie チェックで移すと、期限切れの Cookie が残っているときに「Proxy が `/phrases` へ移す → Server Component が `/login` へ戻す」を繰り返してしまうため
+- ログイン済みの人を `/login` から移す判定は、Proxy ではなくページの Server Component（`getSession`）で行う。未ログインの人には画面を出したいので、`requireSession` ではなく `getSession` を使う。Proxy の Cookie チェックで移すと、期限切れの Cookie が残っているときに「Proxy が `/phrases` へ移す → Server Component が `/login` へ戻す」を繰り返してしまうため
 - ログアウト後にページごと再読み込みするのは、Next の Client Cache を消すため。`router.push` で移動するだけだと、ブラウザの戻るボタンでキャッシュから保護された画面が表示されうる（戻る・進むの移動では、サーバーにリクエストせずキャッシュを使うため、Proxy も通らない）
 
 ### オープンリダイレクト対策
