@@ -33,16 +33,18 @@ export default function Page({ searchParams }: SignupPageProps) {
 async function SignupContent({ searchParams }: SignupPageProps) {
   const { redirect: redirectParam } = await searchParams;
   const redirectTo = getSafeRedirect(redirectParam, AFTER_LOGIN_PATH);
-  const loginHref =
-    redirectTo === AFTER_LOGIN_PATH
-      ? "/login"
-      : `/login?redirect=${encodeURIComponent(redirectTo)}`;
 
   // ログイン済みなら画面を出さずに移す。
   // 未ログインのときはそのまま画面を出したいので、requireSession ではなく getSession を使う。
   // Cookie があっても api が無効と判断すれば null になるため、偽の Cookie でもループしない。
   const session = await getSession();
   if (session) redirect(redirectTo);
+
+  // ここから下は未ログインの人に画面を出すための準備
+  const loginHref =
+    redirectTo === AFTER_LOGIN_PATH
+      ? "/login"
+      : `/login?redirect=${encodeURIComponent(redirectTo)}`;
 
   return <SignupView redirectTo={redirectTo} loginHref={loginHref} />;
 }
