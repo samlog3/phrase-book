@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
@@ -11,7 +10,6 @@ import { authClient } from "@/lib/auth-client";
  * `useSession` はセッションを api から取得し、ログアウト後は自動で取り直すので、表示もそれに合わせて切り替わる。
  */
 export function AuthButton() {
-  const router = useRouter();
   const { data, isPending } = authClient.useSession();
   const [signingOut, setSigningOut] = useState(false);
 
@@ -41,11 +39,11 @@ export function AuthButton() {
     } catch (error) {
       console.error("ログアウトに失敗しました", error);
     } finally {
-      // 学習用として、失敗してもトップへ戻す。保護画面に留まらないようにするため
-      router.push("/");
-      // Cookie が変わったので、Server Component を描画し直してログイン状態を反映する
-      router.refresh();
-      setSigningOut(false);
+      // 学習用として、失敗してもトップへ戻す。保護画面に留まらないようにするため。
+      // 戻るボタンでキャッシュから保護画面が表示されないよう、ページごと読み込み直す。
+      // router.push だと Client Cache が残り、Proxy を通らない
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign("/");
     }
   }
 
