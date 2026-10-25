@@ -1,8 +1,12 @@
 "use client";
 import { deletePhrase } from "@/app/phrases/actions";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { useTransition } from "react";
-type PhraseDeleteButtonProps = { id: number };
+type PhraseDeleteButtonProps = {
+  id: number;
+  /** 確認ダイアログで、何を消すのかを伝えるために出すフレーズ */
+  phrase: string;
+};
 
 /**
  * 詳細画面の削除ボタン。確認してから Server Action の deletePhrase を呼ぶ。
@@ -10,11 +14,11 @@ type PhraseDeleteButtonProps = { id: number };
  * - 削除が終わるまで isPending でボタンを無効にし、2 回押されるのを防ぐ
  * - 削除後の移動は Server Action の redirect に任せるので、ここでは何もしない
  */
-export function PhraseDeleteButton({ id }: PhraseDeleteButtonProps) {
+export function PhraseDeleteButton({ id, phrase }: PhraseDeleteButtonProps) {
   const [isPending, startTransition] = useTransition();
 
   function onClick() {
-    if (!window.confirm(`本当に削除しますか？`)) return;
+    if (!window.confirm(`「${phrase}」を削除しますか？`)) return;
     // async の関数を渡して中で await すると、終わるまで isPending が true のままになる
     startTransition(async () => {
       await deletePhrase(id);

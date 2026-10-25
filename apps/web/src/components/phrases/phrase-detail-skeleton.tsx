@@ -1,4 +1,4 @@
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * 詳細の読み込み中に出す、カードの形をした灰色の枠。

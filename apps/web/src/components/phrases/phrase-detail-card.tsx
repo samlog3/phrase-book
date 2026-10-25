@@ -7,8 +7,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../ui/card";
-import { Badge } from "../ui/badge";
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { PhraseDeleteButton } from "./phrase-delete-button";
 
 type PhraseDetailCardProps = {
@@ -65,7 +65,7 @@ export function PhraseDetailCard({ phrase }: PhraseDetailCardProps) {
         </dl>
       </CardContent>
       <CardFooter className="justify-end">
-        <PhraseDeleteButton id={phrase.id} />
+        <PhraseDeleteButton id={phrase.id} phrase={phrase.phrase} />
       </CardFooter>
     </Card>
   );

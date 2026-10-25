@@ -32,6 +32,7 @@ export default function PhraseDetailPage({ params }: PhraseDetailProps) {
  */
 async function PhraseDetailContent({ params }: PhraseDetailProps) {
   const { id } = await params;
+  if (!/^\d+$/.test(id)) notFound(); // 数字でなければ、ここで Not Found にする
   await requireSession(`/phrases/${id}`);
   const client = await getApiClient();
   const res = await client.api.phrases[":id"].$get({ param: { id } });
