@@ -1,0 +1,103 @@
+# web の作り（データの流れ）
+
+## 前提
+
+- web（Next.js）は UI だけを持ち、DB には触らない。データの読み書きはすべて api（Hono）に任せる
+- api が「データを守る本体」で、セッションと本人のデータかどうかは api が確かめる（[auth.md](auth.md)）
+- web のサーバー（Server Component・Server Action）は、ブラウザと api の間に立つ窓口（BFF）として使う
+
+## 全体像
+
+```
+ブラウザ
+  │
+  │ ① 画面を開く（GET） / ② フォームを送る（Server Action の POST）
+  ▼
+web:3000（Next.js のサーバー）
+  │  Proxy                  Cookie があるかだけ見る
+  │  Server Component       読み込み：RPC で api を呼ぶ（Cookie を転送する）
+  │  Server Action          書き込み：RPC で api を呼ぶ（Cookie を転送する）
+  │
+  │ ③ RPC（hc<AppType>）
+  ▼
+api:8787（Hono）              セッションと本人かを確かめて、DB を読み書きする
+
+例外：認証（サインアップ・ログイン・ログアウト）だけは、ブラウザの Client Component から
+Better Auth のクライアントで api に直接送る（CORS を通る）
+```
+
+## 役割の分担
+
+| 部品 | どこで動くか | 担当すること | api の呼び方 |
+| --- | --- | --- | --- |
+| Proxy | web のサーバー | 未ログインを `/login` へ移す入口のチェック | 呼ばない |
+| Server Component | web のサーバー | データの読み込みと画面の組み立て | RPC。Cookie を転送する |
+| Server Action | web のサーバー | 作成・編集・削除と、その後の移動・画面の更新 | RPC。Cookie を転送する |
+| Client Component | ブラウザ | 入力・クリックなどの操作と、その場の表示の切り替え | 呼ばない（Server Action を呼ぶ） |
+| Better Auth のクライアント | ブラウザ（とサーバー） | 認証と、セッションの確認 | 直接。ブラウザでは Cookie が自動で付く |
+
+## 使い分けのルール
+
+### Server Component を基本にする
+
+- ページは Server Component で書き、データはサーバーで取ってから HTML にする
+- 次のどれかが必要な部分だけを Client Component（`"use client"`）に切り出す
+  - `useState` などの状態
+  - `onClick`・`onChange` などのイベント
+  - ブラウザだけにある API
+- Client Component はなるべく小さく、画面の葉の部分に置く（フォーム、削除ボタンなど）
+- Server Component から Client Component に渡す props は、シリアライズできる値で、必要なものだけにする（`getSession` が `{ userId, email }` だけを返すのと同じ考え方）
+
+### 読み込みは Server Component、書き込みは Server Action
+
+| やりたいこと | 書く場所 |
+| --- | --- |
+| 一覧・詳細を表示する | Server Component で api を呼ぶ |
+| 作成・編集・削除する | Client Component のフォームやボタンから Server Action を呼び、Server Action が api を呼ぶ |
+| 認証する | Client Component から Better Auth のクライアントで直接呼ぶ |
+
+### 理由
+
+- **フレーズの api を呼ぶ道を 1 本にするため。** 読み込みも書き込みも「web のサーバーから Cookie を転送して RPC で呼ぶ」になるので、RPC クライアントはサーバー用の 1 つで済み、`server-only` で閉じられる
+- **書き込みの後の処理を 1 か所にまとめるため。** 保存 → 画面の更新 → 移動を Server Action の中で書け、1 回の往復で済む
+- **認証だけ例外にするのは、Cookie を発行するのが Better Auth だから。** ログインのレスポンスの `Set-Cookie` をブラウザに直接受け取らせるため、ブラウザから api へ送る
+
+## Cookie の流れ
+
+| 呼び出し | Cookie の付け方 |
+| --- | --- |
+| ブラウザ → web | ブラウザが自動で付ける（Cookie はポートを区別しないため、api の Cookie も付く） |
+| web のサーバー → api | 自動では付かない。`cookies()` で読んだ値を `cookie` ヘッダーに入れて転送する |
+| ブラウザ → api（認証だけ） | `credentials: "include"` で付ける。api の CORS で `credentials: true` と origin の明示が必要 |
+
+- RPC クライアントは `apps/web/src/lib/api-client.ts` にまとめる（`server-only`）
+  - 自分用の画面は `getApiClient()` を使う。呼ぶたびに `cookies()` を読んで転送するので、`<Suspense>` の内側で呼ぶ
+  - 公開画面は `publicApiClient` を使う
+- 転送するのは `cookie` ヘッダーだけにする（`host` などは送らない）
+- 公開画面（`/public`、`/public/[id]`）は Cookie なしで api を呼ぶ
+
+## 画面ごとの割り当て
+
+| 画面 | Server Component | Client Component | Server Action |
+| --- | --- | --- | --- |
+| `/phrases` | 一覧を取る | なし | なし |
+| `/phrases/[id]` | 詳細を取る | 削除ボタン（確認） | 削除 → 一覧へ移動 |
+| `/phrases/new` | 枠だけ | フォーム | 作成 → 詳細へ移動 |
+| `/phrases/[id]/edit` | 今の値を取る | フォーム（初期値つき） | 更新 → 詳細へ移動 |
+| `/public`、`/public/[id]` | 公開フレーズを取る（Cookie なし） | なし | なし |
+| `/login`、`/signup` | ログイン済みなら移す | フォーム（Better Auth のクライアント） | なし |
+
+## 注意すること
+
+- **Server Action は誰でも呼べる POST の入口になる。** 画面にボタンがあるかどうかに関係なく、外から直接呼ばれる前提で書く。このアプリでは、認証と本人のデータかどうかは api が確かめる
+- **想定内の失敗（バリデーションエラーなど）は、Server Action から値として返す。** throw すると `error.tsx` に行ってしまう
+- **`redirect()` と `notFound()` は例外を投げて動く。** `try/catch` の中で呼ばない
+- **`cacheComponents` が有効なので、`cookies()` を読む処理は `<Suspense>` の内側に置く。** api を Cookie つきで呼ぶ Server Component も同じ
+- **画面の状態は、ファイルで分けて用意する。** `loading.tsx`（読み込み中）、`error.tsx`（想定外のエラー）、`not-found.tsx`（api の 404 を `notFound()` につないだとき）
+
+## まだ決めていないこと
+
+| 内容 | 決める issue |
+| --- | --- |
+| Server Action の戻り値の形（成功、バリデーションエラー、想定外のエラー） | #28（step 6-3） |
+| 書き込みの後の画面の更新に、`refresh()`・`revalidatePath`・`updateTag` のどれを使うか | #28（step 6-3） |
