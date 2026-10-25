@@ -79,9 +79,49 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 | --- | --- |
 | フレーズの画面で使う部品 | `apps/web/src/components/phrases/` |
 | フレーズの Server Action | `apps/web/src/app/phrases/actions.ts`（先頭に `"use server"`） |
+| フォームの検証と、Server Action の戻り値の型 | `apps/web/src/lib/schemas/phrase.ts`（ブラウザと Server Action の両方から使う） |
+| 複数の画面で使うサーバー専用の処理（`getMyPhrase` など） | `apps/web/src/lib/phrases.ts`（`server-only`） |
 | 複数の画面で使う部品（ヘッダーなど） | `apps/web/src/components/` の直下 |
 
 - Client Component は `actions.ts` の関数を import して呼ぶだけにする。`api-client.ts` は `server-only` なので、Client Component からは import できない
+- `"use server"` のファイルから export できるのは async 関数だけなので、戻り値の型や初期値は `actions.ts` に置かず `lib/schemas/phrase.ts` に置く
+
+### Server Action の戻り値（作成・編集）
+
+作成（`createPhrase`）と更新（`updatePhrase`）は、`useActionState` から呼ぶ形（`(prevState, formData) => Promise<PhraseFormState>`）にする。
+
+| 結果 | 戻り値 | 画面での表示 |
+| --- | --- | --- |
+| 成功 | 返さない。`redirect` で詳細（`/phrases/{id}`）へ移動する | 詳細画面 |
+| 入力の誤り | `{ status: "invalid", fieldErrors }` | 項目ごとに、入力欄の下に出す |
+| 想定外の失敗 | `{ status: "error", message }` | フォームの上にまとめて出す |
+| まだ送っていない | `{ status: "idle" }`（`useActionState` の初期値） | 何も出さない |
+
+- 成功のときに値を返さないのは、保存 → 画面の更新 → 移動を Server Action の中で 1 回の往復で済ませるため
+- 想定外の失敗（api が落ちているなど）も throw せずに返す。`error.tsx` に行くと、入力した内容が消えてしまうため。削除はボタンだけで入力がないので、これまでどおり throw して `error.tsx` に任せる
+- `fieldErrors` の形は `z.flattenError(...).fieldErrors` と同じにし、ブラウザの検証と api の 400 のどちらから来ても同じように表示する
+
+### フォームの検証
+
+- shared の `createPhraseSchema` を、`parsePhraseForm`（`lib/schemas/phrase.ts`）でブラウザと Server Action の両方から使う
+  - ブラウザ：送る前に確かめ、誤りがあれば Server Action を呼ばずにその場で出す
+  - Server Action：外から直接呼ばれても確かめる（api でも確かめるが、無駄なリクエストを送らない）
+- shared のスキーマには日本語のメッセージを書かない（api と共有していて、api のメッセージは英語のため）。web で parse するときだけ、`safeParse(data, { error })` でエラーマップを渡して日本語にする
+- 編集でもフォームは全項目を送るので、`createPhraseSchema` で検証する。空にした任意項目は `null` になり、PATCH で「空にする」として扱われる
+- api が 400 を返したときは、`details.fieldErrors` のキーのうちフォームにある項目に「入力内容が正しくありません」を出す。api のメッセージは開発者向けの英語なので、そのままは出さない
+- `<form action>` には渡さず、`onSubmit` で `preventDefault` してから `startTransition` の中で `useActionState` の関数を呼ぶ。`<form action>` だと送ったあとに React がフォームを初期値に戻し、エラーのときに入力が消えるため
+
+### 書き込みの後の画面の更新
+
+作成・更新の後は `revalidatePath("/phrases", "layout")` を `redirect` の前に呼ぶ。
+
+| 候補 | 使わない・使う理由 |
+| --- | --- |
+| `updateTag` | `"use cache"` と `cacheTag` で保存したデータを消すもの。一覧・詳細は Cookie を読んでリクエストごとに取っていて、タグの付いたキャッシュがないので、消すものがない |
+| `refresh()` | 今いる画面（作成・編集）を取り直すだけで、前に開いた一覧や詳細のブラウザ側のキャッシュは残る。保存後は `redirect` で別の画面へ移るので合わない |
+| `revalidatePath` | 使う。`layout` を付けて `/phrases` に呼ぶと、一覧・詳細・編集の画面をまとめて取り直す。一覧（タイトルや公開バッジ）と詳細の両方が変わるので、`/phrases` 以下をまとめて対象にする |
+
+- 後で一覧・詳細を `"use cache"` で保存するようにしたら、`cacheTag` を付けて `updateTag` に切り替える
 
 ### api のエラーの扱い
 
@@ -90,7 +130,12 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 | 詳細の取得 | 404（存在しない・他人のフレーズ）、400（0 で始まる・大きすぎる ID） | `notFound()` で `not-found.tsx` を出す |
 | 削除 | 404（別のタブで先に削除していたなど） | 消したいものはもうないので、成功と同じく一覧へ戻す |
 | 削除 | 401（詳細画面を開いている間にセッションが切れた） | ログイン後に詳細へ戻れるよう `/login?redirect=/phrases/{id}` へ移動する |
-| どれでも | 上以外（500 など） | throw して `error.tsx` に任せる |
+| 編集画面の表示 | 404・400 | 詳細と同じく `notFound()` で `[id]/not-found.tsx` を出す |
+| 作成・更新 | 400（入力の誤り） | `{ status: "invalid" }` を返し、項目ごとに出す |
+| 作成・更新 | 401（入力中にセッションが切れた） | ログイン後にフォームへ戻れるよう `/login?redirect=/phrases/new`（更新なら `/phrases/{id}/edit`）へ移動する |
+| 更新 | 404（別のタブで削除していたなど） | `{ status: "error" }` で「見つかりません」と出す |
+| 作成・更新 | 上以外（500 など）、api に届かない | throw せず `{ status: "error" }` を返し、入力を残したまま出す |
+| 取得・削除 | 上以外（500 など） | throw して `error.tsx` に任せる |
 
 - 数字でない ID は、api に問い合わせる前に web で `notFound()` にする。URL から来た値を `requireSession` の `returnTo` にそのまま渡さないため
 - 404 と 400 を区別せず Not Found にするのは、どちらも URL として「ないページ」だから。他人のフレーズかどうかも区別しない（あることを知られないため）
@@ -119,9 +164,9 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 
 | 画面 | Server Component | Client Component | Server Action |
 | --- | --- | --- | --- |
-| `/phrases` | 一覧を取る | なし | なし |
-| `/phrases/[id]` | 詳細を取る | 削除ボタン（確認） | 削除 → 一覧へ移動 |
-| `/phrases/new` | 枠だけ | フォーム | 作成 → 詳細へ移動 |
+| `/phrases` | 一覧を取る（作成へのリンク） | なし | なし |
+| `/phrases/[id]` | 詳細を取る（編集へのリンク） | 削除ボタン（確認） | 削除 → 一覧へ移動 |
+| `/phrases/new` | ログインを確かめる | フォーム | 作成 → 詳細へ移動 |
 | `/phrases/[id]/edit` | 今の値を取る | フォーム（初期値つき） | 更新 → 詳細へ移動 |
 | `/public`、`/public/[id]` | 公開フレーズを取る（Cookie なし） | なし | なし |
 | `/login`、`/signup` | ログイン済みなら移す | フォーム（Better Auth のクライアント） | なし |
@@ -134,10 +179,3 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 - **`cacheComponents` が有効なので、`cookies()` を読む処理は `<Suspense>` の内側に置く。** api を Cookie つきで呼ぶ Server Component も同じ
 - **画面の状態は、ファイルで分けて用意する。** `loading.tsx`（読み込み中）、`error.tsx`（想定外のエラー）、`not-found.tsx`（api の 404 を `notFound()` につないだとき）
 - **`error.tsx` の再読み込みには `retry` を使う。** `reset` はエラーの状態を消して描画し直すだけで、サーバーにデータを取りに行かない。`retry` は `router.refresh()` で取り直してから `reset` するので、api が復旧していれば画面が戻る
-
-## まだ決めていないこと
-
-| 内容 | 決める issue |
-| --- | --- |
-| Server Action の戻り値の形（成功、バリデーションエラー、想定外のエラー） | #28（step 6-3） |
-| 書き込みの後の画面の更新に、`refresh()`・`revalidatePath`・`updateTag` のどれを使うか | #28（step 6-3） |
