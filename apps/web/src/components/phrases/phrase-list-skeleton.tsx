@@ -1,4 +1,4 @@
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /** 読み込み中に並べる枠の数 */
 const SKELETON_COUNT = 5;

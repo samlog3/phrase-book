@@ -1,5 +1,5 @@
-import { PhraseList } from "@/components/phrase-list";
-import { PhraseListSkeleton } from "@/components/phrase-list-skeleton";
+import { PhraseList } from "@/components/phrases/phrase-list";
+import { PhraseListSkeleton } from "@/components/phrases/phrase-list-skeleton";
 import { getApiClient } from "@/lib/api-client";
 import { requireSession } from "@/lib/session";
 import { Suspense } from "react";
