@@ -39,7 +39,7 @@ async function PhraseDetailContent({ params }: PhraseDetailProps) {
   if (!res.ok) {
     // api は 404 などを AppError で投げて返すので、RPC の型には 200 しか載っていない。number として比べる
     const status: number = res.status;
-    // 存在しない ID・他人のフレーズは 404、数字でない ID は 400 が返る。どちらも「ないページ」として扱う
+    // 存在しない ID・他人のフレーズは 404、0 で始まる・大きすぎる ID は 400 が返る。どちらも「ないページ」として扱う
     if (status === 404 || status === 400) notFound();
     throw new Error(`phrase ${id} の取得に失敗しました: ${status}`);
   }
