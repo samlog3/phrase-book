@@ -62,6 +62,22 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 - **書き込みの後の処理を 1 か所にまとめるため。** 保存 → 画面の更新 → 移動を Server Action の中で書け、1 回の往復で済む
 - **認証だけ例外にするのは、Cookie を発行するのが Better Auth だから。** ログインのレスポンスの `Set-Cookie` をブラウザに直接受け取らせるため、ブラウザから api へ送る
 
+### 型の置き場所
+
+| 型の種類 | 置き場所 |
+| --- | --- |
+| api のレスポンスから作る型（例: `PhraseListItem`） | `apps/web/src/lib/api-types.ts` に集める。`InferResponseType` で api の型から作る |
+| コンポーネントの props の型 | そのコンポーネントのファイル。`Pick` で使う項目だけを宣言し、export しない |
+
+- フレーズの型を web で手書きしない。正しい型は api が持っているので、web はそこから作るだけにする（手書きすると、`id` が `number` か `string` かのようなずれが起きる）
+- props を `Pick` で絞るのは、型を見ればそのコンポーネントが何を使うかわかるようにするため。余分な項目があっても渡せるので、ページからは api の結果をそのまま渡せる
+- `api-types.ts` は `server-only` の `api-client.ts` を `import type` でだけ参照する。型は実行時に消えるので、Client Component から `api-types.ts` の型を使っても問題ない
+
+### 幅と余白は layout.tsx が決める
+
+- ページの幅と余白は、`app/phrases/layout.tsx` のような `layout.tsx` に置く。一覧などの部品は並べ方（`flex`・`gap`）だけを決める
+- `layout.tsx` は `loading.tsx`・`error.tsx`・`page.tsx` の外側に置かれるので、読み込み中・エラー・0 件のどの状態でも同じ幅になる。部品ごとに書くと、状態が切り替わったときに位置がずれる
+
 ## Cookie の流れ
 
 | 呼び出し | Cookie の付け方 |
@@ -94,6 +110,7 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 - **`redirect()` と `notFound()` は例外を投げて動く。** `try/catch` の中で呼ばない
 - **`cacheComponents` が有効なので、`cookies()` を読む処理は `<Suspense>` の内側に置く。** api を Cookie つきで呼ぶ Server Component も同じ
 - **画面の状態は、ファイルで分けて用意する。** `loading.tsx`（読み込み中）、`error.tsx`（想定外のエラー）、`not-found.tsx`（api の 404 を `notFound()` につないだとき）
+- **`error.tsx` の再読み込みには `retry` を使う。** `reset` はエラーの状態を消して描画し直すだけで、サーバーにデータを取りに行かない。`retry` は `router.refresh()` で取り直してから `reset` するので、api が復旧していれば画面が戻る
 
 ## まだ決めていないこと
 
