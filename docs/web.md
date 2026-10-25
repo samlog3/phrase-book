@@ -73,6 +73,27 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 - props を `Pick` で絞るのは、型を見ればそのコンポーネントが何を使うかわかるようにするため。余分な項目があっても渡せるので、ページからは api の結果をそのまま渡せる
 - `api-types.ts` は `server-only` の `api-client.ts` を `import type` でだけ参照する。型は実行時に消えるので、Client Component から `api-types.ts` の型を使っても問題ない
 
+### ファイルの置き場所
+
+| 種類 | 置き場所 |
+| --- | --- |
+| フレーズの画面で使う部品 | `apps/web/src/components/phrases/` |
+| フレーズの Server Action | `apps/web/src/app/phrases/actions.ts`（先頭に `"use server"`） |
+| 複数の画面で使う部品（ヘッダーなど） | `apps/web/src/components/` の直下 |
+
+- Client Component は `actions.ts` の関数を import して呼ぶだけにする。`api-client.ts` は `server-only` なので、Client Component からは import できない
+
+### api のエラーの扱い
+
+| 場面 | api のステータス | web での扱い |
+| --- | --- | --- |
+| 詳細の取得 | 404（存在しない・他人のフレーズ）、400（数字でない ID） | `notFound()` で `not-found.tsx` を出す |
+| 削除 | 404（別のタブで先に削除していたなど） | 消したいものはもうないので、成功と同じく一覧へ戻す |
+| どれでも | 上以外（500 など） | throw して `error.tsx` に任せる |
+
+- 404 と 400 を区別せず Not Found にするのは、どちらも URL として「ないページ」だから。他人のフレーズかどうかも区別しない（あることを知られないため）
+- api は 404 などを AppError で投げて返すので、RPC の型には成功時のステータスしか載っていない。比べるときは `const status: number = res.status` と受け直す
+
 ### 幅と余白は layout.tsx が決める
 
 - ページの幅と余白は、`app/phrases/layout.tsx` のような `layout.tsx` に置く。一覧などの部品は並べ方（`flex`・`gap`）だけを決める
