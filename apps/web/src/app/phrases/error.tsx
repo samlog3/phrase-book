@@ -1,3 +1,4 @@
+// error.tsx はブラウザでボタンを押せる必要があるため、Client Component でなければならない
 "use client";
 
 import { useEffect } from "react";
@@ -8,6 +9,11 @@ type ErrorProps = {
   retry: () => void;
 };
 
+/**
+ * /phrases で想定外のエラー（api が落ちているなど）が起きたときの画面。
+ * 「再読み込み」では reset ではなく retry を呼ぶ。reset は描画し直すだけでデータを取りに行かないが、
+ * retry は router.refresh() でサーバーから取り直すので、api が復旧していれば一覧に戻る。
+ */
 export default function PhraseError({ error, retry }: ErrorProps) {
   // 画面には出さず、開発中に原因を追えるようブラウザのコンソールに残す
   useEffect(() => {

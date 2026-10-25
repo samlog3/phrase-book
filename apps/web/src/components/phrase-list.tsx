@@ -6,6 +6,10 @@ type PhraseListProps = {
   items: PhraseListItem[];
 };
 
+/**
+ * フレーズを渡された順に縦に並べる。0 件なら PhraseListEmpty を出す。
+ * データは props で受け取るだけで api は呼ばない。幅と余白は layout.tsx に任せ、ここでは並べ方だけを決める。
+ */
 export function PhraseList({ items }: PhraseListProps) {
   if (items.length === 0) return <PhraseListEmpty />;
 

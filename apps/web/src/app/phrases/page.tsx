@@ -4,9 +4,12 @@ import { getApiClient } from "@/lib/api-client";
 import { requireSession } from "@/lib/session";
 import { Suspense } from "react";
 
-// ログイン確認と、フレーズ一覧の取得
-// requireSession は中で cookies() を読むため、必ず <Suspense> の内側で呼ぶ。
-// 外で呼ぶと、静的な殻を作るビルド時にエラーになる。
+/**
+ * リクエストごとに決まる部分。ログインを確認して、自分のフレーズ一覧を api から取る。
+ * - requireSession と getApiClient は中で cookies() を読むため、必ず <Suspense> の内側で呼ぶ。
+ *   外で呼ぶと、静的な殻を作るビルド時にエラーになる
+ * - api が失敗したら投げて error.tsx に任せる
+ */
 async function PhrasesContent() {
   await requireSession("/phrases");
   const client = await getApiClient();
@@ -18,11 +21,15 @@ async function PhrasesContent() {
   return <PhraseList items={items} />;
 }
 
-// 静的な殻。ビルド時に作られる見出しと <Suspense> だけを置く。
-// <Suspense> の中身はリクエスト時に描画され、それまでは fallback が表示される。
+/**
+ * 自分のフレーズ一覧の画面（/phrases）。
+ * 静的な殻として、ビルド時に作られる見出しと <Suspense> だけを置く。
+ * <Suspense> の中身はリクエスト時に描画され、それまでは fallback のスケルトンが表示される。
+ */
 export default function PhrasesPage() {
   return (
     <>
+      {/* 画面には出さず、スクリーンリーダー向けに見出しを残す */}
       <h1 className="sr-only">Phrases</h1>
       <Suspense fallback={<PhraseListSkeleton />}>
         <PhrasesContent />
