@@ -161,6 +161,7 @@ PhraseTag    ※今後の拡張・明示（explicit）の中間テーブル
 - 画面のパスも API と同じく、自分用（`/phrases`）と公開用（`/public`）に分ける。1 つの画面がどの API を呼ぶかを 1 つに決めるため
 - 自分の公開フレーズは、`/phrases/[id]` と `/public/[id]` のどちらでも表示できる
 - `/` は現在、見出しだけの仮のページ
+- Server Component・Client Component・Server Action の使い分けと、データの流れは [web.md](web.md) にまとめる
 
 ### 画面保護
 

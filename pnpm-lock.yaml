@@ -238,6 +238,9 @@ importers:
       cn:
         specifier: ^0.5.0
         version: 0.5.0
+      hono:
+        specifier: ^4.13.13
+        version: 4.13.13
       lucide-react:
         specifier: ^1.59.0
         version: 1.59.0(@types/react@19.3.0)(react@19.3.0)
@@ -263,6 +266,9 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
+      '@phrase-book/api':
+        specifier: workspace:*
+        version: link:../api
       '@tailwindcss/turbopack':
         specifier: ^4
         version: 4.3.3

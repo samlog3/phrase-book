@@ -29,5 +29,10 @@
     "tsx": "^4.23.0",
     "typescript": "catalog:",
     "vitest": "^5.0.5"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/app.ts"
+    }
   }
 }
