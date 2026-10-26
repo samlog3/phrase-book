@@ -24,6 +24,7 @@ async function PhrasesContent() {
       items={items}
       basePath="/phrases"
       emptyMessage="フレーズがまだありません"
+      showPublicBadge
     />
   );
 }

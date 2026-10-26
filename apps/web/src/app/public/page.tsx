@@ -23,6 +23,7 @@ async function PublicPhrasesContent() {
       items={items}
       basePath="/public"
       emptyMessage="公開されているフレーズはまだありません"
+      showPublicBadge={false}
     />
   );
 }
