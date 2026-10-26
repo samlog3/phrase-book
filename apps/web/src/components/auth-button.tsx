@@ -48,8 +48,11 @@ export function AuthButton() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <p className="text-sm text-muted-foreground">{data.user.email}</p>
+    // 長いメールアドレスは truncate で「…」にし、ログアウトボタンを画面の外へ押し出さないようにする
+    <div className="flex min-w-0 items-center gap-2">
+      <p className="truncate text-sm text-muted-foreground">
+        {data.user.email}
+      </p>
       <Button variant="outline" onClick={onClick} disabled={signingOut}>
         ログアウト
       </Button>
