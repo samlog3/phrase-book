@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 import type { PhraseDetail } from "@/lib/api-types";
 import {
   Card,
@@ -64,7 +66,13 @@ export function PhraseDetailCard({ phrase }: PhraseDetailCardProps) {
           )}
         </dl>
       </CardContent>
-      <CardFooter className="justify-end">
+      <CardFooter className="justify-end gap-2">
+        <Link
+          href={`/phrases/${phrase.id}/edit`}
+          className={buttonVariants({ variant: "outline" })}
+        >
+          編集
+        </Link>
         <PhraseDeleteButton id={phrase.id} phrase={phrase.phrase} />
       </CardFooter>
     </Card>

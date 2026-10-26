@@ -10,11 +10,18 @@ const publicRoutes = ["/", "/login", "/signup"];
  * 公開パス以外でセッション cookie がなければ `/login` へリダイレクトする。
  * cookie の有無だけを見る簡易チェックのため、偽造された cookie は通る。
  * 正式なセッション検証は Server Component 側の `requireSession` が行う。
+ * Server Action の POST はチェックせずに通す（理由は下のコメント）。
  *
  * @param request - 受信したリクエスト
  * @returns 通す場合は `NextResponse.next()`、未ログインの場合は `/login` へのリダイレクト
  */
 export function proxy(request: NextRequest) {
+  // Server Action の POST（next-action ヘッダー付き）は /login へ移さない。
+  // 移すとクライアントが RSC ではなく /login の HTML を受け取り、エラーになる。
+  // 認証は Server Action が呼ぶ api が確かめ、401 なら Server Action が redirect で /login へ移す
+  if (request.headers.has("next-action")) {
+    return NextResponse.next();
+  }
   // 公開パスなら通す
   if (isPublicPath(request.nextUrl.pathname)) {
     return NextResponse.next();

@@ -9,15 +9,28 @@ const trimToNull = z
 const nullableText = (max: number) =>
   trimToNull.pipe(z.string().max(max).nullable());
 
-const nullableUrl = trimToNull.pipe(z.httpUrl().max(2048).nullable());
+// 文字数の上限。スキーマとフォームの「○文字まで」の表示の両方で使う
+export const PHRASE_MAX_LENGTH = {
+  phrase: 100,
+  meaning: 200,
+  example: 200,
+  context: 500,
+  note: 800,
+  source: 100,
+  sourceUrl: 2048,
+} as const;
+
+const nullableUrl = trimToNull.pipe(
+  z.httpUrl().max(PHRASE_MAX_LENGTH.sourceUrl).nullable(),
+);
 
 export const createPhraseSchema = z.object({
-  phrase: z.string().trim().min(1).max(100),
-  meaning: z.string().trim().min(1).max(200),
-  example: nullableText(200).optional(),
-  context: nullableText(500).optional(),
-  note: nullableText(800).optional(),
-  source: nullableText(100).optional(),
+  phrase: z.string().trim().min(1).max(PHRASE_MAX_LENGTH.phrase),
+  meaning: z.string().trim().min(1).max(PHRASE_MAX_LENGTH.meaning),
+  example: nullableText(PHRASE_MAX_LENGTH.example).optional(),
+  context: nullableText(PHRASE_MAX_LENGTH.context).optional(),
+  note: nullableText(PHRASE_MAX_LENGTH.note).optional(),
+  source: nullableText(PHRASE_MAX_LENGTH.source).optional(),
   sourceUrl: nullableUrl.optional(),
   // 真偽値のみ。null は空にする意味がないので受け付けない（省略時は作成なら非公開、更新なら変更しない）
   isPublic: z.boolean().optional(),

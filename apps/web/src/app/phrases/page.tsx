@@ -1,3 +1,4 @@
+import { NewPhraseLink } from "@/components/phrases/new-phrase-link";
 import { PhraseList } from "@/components/phrases/phrase-list";
 import { PhraseListSkeleton } from "@/components/phrases/phrase-list-skeleton";
 import { getApiClient } from "@/lib/api-client";
@@ -23,17 +24,18 @@ async function PhrasesContent() {
 
 /**
  * 自分のフレーズ一覧の画面（/phrases）。
- * 静的な殻として、ビルド時に作られる見出しと <Suspense> だけを置く。
+ * 静的な殻として、ビルド時に作られる見出し・作成へのリンクと <Suspense> だけを置く。
  * <Suspense> の中身はリクエスト時に描画され、それまでは fallback のスケルトンが表示される。
  */
 export default function PhrasesPage() {
   return (
-    <>
+    <div className="flex flex-col gap-3 sm:gap-4">
       {/* 画面には出さず、スクリーンリーダー向けに見出しを残す */}
       <h1 className="sr-only">Phrases</h1>
+      <NewPhraseLink className="self-end" />
       <Suspense fallback={<PhraseListSkeleton />}>
         <PhrasesContent />
       </Suspense>
-    </>
+    </div>
   );
 }
