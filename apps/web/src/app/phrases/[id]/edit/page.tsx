@@ -34,6 +34,9 @@ async function EditPhraseContent({ params }: EditPhraseProps) {
   const phrase = await getMyPhrase(id, `/phrases/${id}/edit`);
   return (
     <PhraseForm
+      // 前に開いた画面は Activity で隠れたまま残るので、保存後に新しい値が届いても入力欄は古いまま。
+      // updatedAt が変わったらフォームを作り直して、新しい値を初期値にする
+      key={phrase.updatedAt}
       action={updatePhrase.bind(null, phrase.id)}
       defaultValues={{
         phrase: phrase.phrase,

@@ -111,6 +111,16 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 - api が 400 を返したときは、`details.fieldErrors` のキーのうちフォームにある項目に「入力内容が正しくありません」を出す。api のメッセージは開発者向けの英語なので、そのままは出さない
 - `<form action>` には渡さず、`onSubmit` で `preventDefault` してから `startTransition` の中で `useActionState` の関数を呼ぶ。`<form action>` だと送ったあとに React がフォームを初期値に戻し、エラーのときに入力が消えるため
 
+### 前の画面が残ること（Activity）とフォーム
+
+`cacheComponents` が有効だと、移動した後も前の画面（直近 3 ルートまで）は消えずに React の `<Activity>` で隠れて残る。入力やエラー表示もそのまま残るので、フォームでは次のようにする。
+
+| 場面 | 起きること | 対応 |
+| --- | --- | --- |
+| 作成・編集で保存できた後 | もう一度開くと、前の入力やエラーが残っている | `PhraseForm` が、送ってから値が返らないまま（redirect して）画面が隠れたら、`key` を変えてフォームを作り直す |
+| 編集を保存した後 | 隠れている編集画面に新しい値が届いても、入力欄は古いまま。Switch は初期値が変わったと警告を出す | 編集画面で `key={phrase.updatedAt}` を付け、値が変わったら作り直す |
+| 保存できなかったとき・保存せずに離れたとき | 入力が残る | そのままにする（書きかけを失わないため） |
+
 ### 書き込みの後の画面の更新
 
 作成・更新・削除の後は `revalidatePath("/phrases", "layout")`（`actions.ts` の `revalidatePhrases`）を `redirect` の前に呼ぶ。
@@ -165,7 +175,7 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 | 画面 | Server Component | Client Component | Server Action |
 | --- | --- | --- | --- |
 | `/phrases` | 一覧を取る（作成へのリンク） | なし | なし |
-| `/phrases/[id]` | 詳細を取る（編集へのリンク） | 削除ボタン（確認） | 削除 → 一覧へ移動 |
+| `/phrases/[id]` | 詳細を取る（作成・編集へのリンク） | 削除ボタン（確認） | 削除 → 一覧へ移動 |
 | `/phrases/new` | ログインを確かめる | フォーム | 作成 → 詳細へ移動 |
 | `/phrases/[id]/edit` | 今の値を取る | フォーム（初期値つき） | 更新 → 詳細へ移動 |
 | `/public`、`/public/[id]` | 公開フレーズを取る（Cookie なし） | なし | なし |

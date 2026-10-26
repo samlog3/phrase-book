@@ -4,6 +4,9 @@ import Link from "next/link";
 import {
   startTransition,
   useActionState,
+  useLayoutEffect,
+  useRef,
+  useState,
   type ComponentProps,
   type FormEvent,
 } from "react";
@@ -54,13 +57,48 @@ type PhraseFormProps = {
 
 /**
  * 作成（/phrases/new）と編集（/phrases/[id]/edit）で使うフォーム。
+ * 保存できたら、次に開いたときに初期値から始まるようフォームを作り直す。
+ * - cacheComponents が有効だと、移動した後も前の画面は消えずに Activity で隠れて残る。
+ *   そのままだと、作成した後にもう一度開いたときに前の入力やエラーが残っている
+ * - 保存できると Server Action は redirect し、呼んだ側には値が返らない（redirect のエラーで reject される）。
+ *   値が返らないまま画面が隠れたら保存できたとみなし、key を変えて PhraseFormBody を作り直す
+ * - 保存できなかったときは値（PhraseFormState）が返るので作り直さず、入力を残す
+ */
+export function PhraseForm({ action, ...props }: PhraseFormProps) {
+  const [formKey, setFormKey] = useState(0);
+  // 送ってから値が返るまでの間だけ true（保存できたときは redirect するので true のまま残る）
+  const awaitingResultRef = useRef(false);
+
+  // Activity で隠れるときに cleanup が呼ばれる
+  useLayoutEffect(() => {
+    const awaitingResult = awaitingResultRef;
+    return () => {
+      if (awaitingResult.current) {
+        awaitingResult.current = false;
+        setFormKey((key) => key + 1);
+      }
+    };
+  }, []);
+
+  async function trackedAction(prevState: PhraseFormState, formData: FormData) {
+    awaitingResultRef.current = true;
+    const state = await action(prevState, formData);
+    awaitingResultRef.current = false;
+    return state;
+  }
+
+  return <PhraseFormBody key={formKey} action={trackedAction} {...props} />;
+}
+
+/**
+ * フォームの中身。PhraseForm が key を変えると作り直され、入力と state が初期値に戻る。
  * - 送る前にブラウザで parsePhraseForm を通し、誤りがあれば Server Action を呼ばずにその場で表示する
  * - Server Action が返した PhraseFormState（api の 400 や想定外の失敗）も同じ state に入るので、表示は 1 か所で済む
  * - <form action> に渡さず onSubmit から呼ぶ。<form action> だと送ったあとに React がフォームを
  *   初期値に戻すので、エラーのときに入力した内容が消えてしまうため
  * - ブラウザ標準の検証は noValidate で止め、エラーは aria-invalid と aria-describedby で入力欄に結びつける
  */
-export function PhraseForm({
+function PhraseFormBody({
   action,
   defaultValues,
   submitLabel,
