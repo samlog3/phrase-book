@@ -15,17 +15,25 @@ type PhraseListCardProps = {
     PhraseListItem,
     "id" | "phrase" | "meaning" | "example" | "isPublic"
   >;
+  // 詳細画面のパス（/phrases/[id] か /public/[id]）
+  href: string;
+  // 公開中なら「公開」のバッジを出すか
+  showPublicBadge: boolean;
 };
 
 /**
- * 一覧の 1 件分のカード。カード全体が詳細画面（/phrases/[id]）へのリンクになる。
+ * 一覧の 1 件分のカード。カード全体が詳細画面へのリンクになる。
  * - カードの中に別のリンクやボタンを置かないので、Link で Card を包むだけにしている
  * - 意味と例は 1 行で切り、カードの高さをそろえる
  */
-export function PhraseListCard({ phrase }: PhraseListCardProps) {
+export function PhraseListCard({
+  phrase,
+  href,
+  showPublicBadge,
+}: PhraseListCardProps) {
   return (
     <Link
-      href={`/phrases/${phrase.id}`}
+      href={href}
       // Tab キーで移ったときに、どのカードにいるかがわかるよう枠を出す
       className="block rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
@@ -41,7 +49,7 @@ export function PhraseListCard({ phrase }: PhraseListCardProps) {
               <div className="line-clamp-1">例　： {phrase.example}</div>
             )}
           </CardDescription>
-          {phrase.isPublic && (
+          {showPublicBadge && phrase.isPublic && (
             <CardAction>
               <Badge>公開</Badge>
             </CardAction>

@@ -19,7 +19,14 @@ async function PhrasesContent() {
     throw new Error(`phrases の取得に失敗しました: ${res.status}`);
   }
   const { items } = await res.json();
-  return <PhraseList items={items} />;
+  return (
+    <PhraseList
+      items={items}
+      basePath="/phrases"
+      emptyMessage="フレーズがまだありません"
+      showPublicBadge
+    />
+  );
 }
 
 /**

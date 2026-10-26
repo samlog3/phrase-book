@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
 import type { PhraseDetail } from "@/lib/api-types";
 import {
   Card,
@@ -11,29 +9,37 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PhraseDeleteButton } from "./phrase-delete-button";
 
 type PhraseDetailCardProps = {
   phrase: Pick<
     PhraseDetail,
-    | "id"
     | "phrase"
     | "meaning"
     | "example"
     | "context"
-    | "note"
     | "source"
     | "sourceUrl"
     | "isPublic"
-  >;
+  > &
+    // 公開用の api は note を返さないので、なくても渡せるようにする
+    Partial<Pick<PhraseDetail, "note">>;
+  // 公開中なら「公開」のバッジを出すか
+  showPublicBadge: boolean;
+  // カードの下に並べるボタン（編集・削除など）。渡さなければフッターを出さない
+  actions?: ReactNode;
 };
 
 /**
- * 詳細画面（/phrases/[id]）のカード。フレーズを見出しにして、各項目を「項目名と値」の組で並べる。
+ * 詳細画面（/phrases/[id]、/public/[id]）のカード。フレーズを見出しにして、各項目を「項目名と値」の組で並べる。
  * - 任意項目は値があるものだけを出す
  * - 入力した改行がそのまま見えるよう、値は whitespace-pre-wrap で表示する
+ * - 編集・削除は自分の詳細だけで出すので、カードには持たせず actions で外から渡す
  */
-export function PhraseDetailCard({ phrase }: PhraseDetailCardProps) {
+export function PhraseDetailCard({
+  phrase,
+  showPublicBadge,
+  actions,
+}: PhraseDetailCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -43,7 +49,7 @@ export function PhraseDetailCard({ phrase }: PhraseDetailCardProps) {
             {phrase.phrase}
           </h1>
         </CardTitle>
-        {phrase.isPublic && (
+        {showPublicBadge && phrase.isPublic && (
           <CardAction>
             <Badge>公開</Badge>
           </CardAction>
@@ -66,15 +72,9 @@ export function PhraseDetailCard({ phrase }: PhraseDetailCardProps) {
           )}
         </dl>
       </CardContent>
-      <CardFooter className="justify-end gap-2">
-        <Link
-          href={`/phrases/${phrase.id}/edit`}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          編集
-        </Link>
-        <PhraseDeleteButton id={phrase.id} phrase={phrase.phrase} />
-      </CardFooter>
+      {actions && (
+        <CardFooter className="justify-end gap-2">{actions}</CardFooter>
+      )}
     </Card>
   );
 }

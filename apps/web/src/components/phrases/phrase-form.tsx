@@ -29,6 +29,7 @@ import {
   type PhraseFormState,
   type PhraseFormValues,
 } from "@/lib/schemas/phrase";
+import { cn } from "@/lib/utils";
 import { PHRASE_MAX_LENGTH } from "@phrase-book/shared";
 
 type PhraseFormProps = {
@@ -193,7 +194,11 @@ function PhraseFormBody({
             <Field orientation="horizontal" className="justify-end">
               <Link
                 href={cancelHref}
-                className={buttonVariants({ variant: "outline" })}
+                // 詳細の編集ボタン（PhraseOwnerActions）と同じく、白いカードの上でも枠が見えるよう濃くする
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "border-foreground/20",
+                )}
               >
                 キャンセル
               </Link>

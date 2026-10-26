@@ -1,8 +1,6 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
-
-/** ログインなしでアクセスできるパス（完全一致） */
-const publicRoutes = ["/", "/login", "/signup"];
+import { isPublicPath } from "@/lib/public-paths";
 
 /**
  * 画面保護の入口チェック。
@@ -37,16 +35,6 @@ export function proxy(request: NextRequest) {
     request.nextUrl.pathname + request.nextUrl.search,
   );
   return NextResponse.redirect(url);
-}
-
-/**
- * 公開パスかどうかを判定する。
- *
- * @param pathname - リクエストのパス名（例: `/login`）。ホストやクエリは含めない
- * @returns 公開パスなら `true`
- */
-function isPublicPath(pathname: string): boolean {
-  return publicRoutes.includes(pathname);
 }
 
 export const config = {
