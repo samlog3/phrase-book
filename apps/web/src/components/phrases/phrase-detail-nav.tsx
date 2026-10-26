@@ -8,7 +8,7 @@ import { NewPhraseLink } from "./new-phrase-link";
 export function PhraseDetailNav() {
   return (
     <div className="flex items-start justify-between">
-      <BackToListLink />
+      <BackToListLink href="/phrases" />
       <NewPhraseLink />
     </div>
   );

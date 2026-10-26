@@ -1,6 +1,7 @@
 import { PhraseDetailNav } from "@/components/phrases/phrase-detail-nav";
 import { PhraseDetailCard } from "@/components/phrases/phrase-detail-card";
 import { PhraseDetailSkeleton } from "@/components/phrases/phrase-detail-skeleton";
+import { PhraseOwnerActions } from "@/components/phrases/phrase-owner-actions";
 import { getMyPhrase } from "@/lib/phrases";
 import { Suspense } from "react";
 
@@ -31,5 +32,11 @@ export default function PhraseDetailPage({ params }: PhraseDetailProps) {
 async function PhraseDetailContent({ params }: PhraseDetailProps) {
   const { id } = await params;
   const phrase = await getMyPhrase(id, `/phrases/${id}`);
-  return <PhraseDetailCard phrase={phrase} />;
+  return (
+    <PhraseDetailCard
+      phrase={phrase}
+      showPublicBadge
+      actions={<PhraseOwnerActions id={phrase.id} phrase={phrase.phrase} />}
+    />
+  );
 }
