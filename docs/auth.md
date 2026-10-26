@@ -25,6 +25,10 @@
 - Proxy は Cookie があるかしか見ない。期限切れや偽の Cookie でも通るため、Server Component でも確かめる
 - Proxy では api に問い合わせない。Proxy はプリフェッチを含むすべてのリクエストで動くため
 - Proxy を置くのは、元のパスを `?redirect=` に入れて、描画の前に 307 で移動するため。Server Component からは今のパスを取れない
+- Server Action の POST（`next-action` ヘッダー付き）は Proxy で移さずに通す
+  - 移すと、クライアントは Server Action の応答（RSC）ではなく `/login` の HTML を受け取り、「An unexpected response was received from the server.」になる
+  - 代わりに、Server Action が呼んだ api が 401 を返し、Server Action が `redirect` で `/login?redirect=<フォームのパス>` へ移す（[web.md](web.md) の「api のエラーの扱い」）
+  - ヘッダーを付ければ普通の画面の GET も Proxy を通り抜けられるが、Server Component の `requireSession` と api で確かめるので、データは守られる
 - layout だけではチェックしない。layout はページを移動しても再描画されず、layout が隠してもその下のページは描画されてしまうため
 - `cacheComponents` が有効なので、`cookies()` を読む処理は `<Suspense>` の内側に置く（外で読むとビルドエラーになる）
 
