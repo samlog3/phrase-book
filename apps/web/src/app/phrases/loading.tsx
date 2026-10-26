@@ -8,7 +8,7 @@ import { PhraseListSkeleton } from "@/components/phrases/phrase-list-skeleton";
 export default function Loading() {
   return (
     <div className="flex flex-col gap-3 sm:gap-4">
-      <NewPhraseLink />
+      <NewPhraseLink className="self-end" />
       <PhraseListSkeleton />
     </div>
   );

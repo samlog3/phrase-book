@@ -32,7 +32,7 @@ export default function PhrasesPage() {
     <div className="flex flex-col gap-3 sm:gap-4">
       {/* 画面には出さず、スクリーンリーダー向けに見出しを残す */}
       <h1 className="sr-only">Phrases</h1>
-      <NewPhraseLink />
+      <NewPhraseLink className="self-end" />
       <Suspense fallback={<PhraseListSkeleton />}>
         <PhrasesContent />
       </Suspense>
