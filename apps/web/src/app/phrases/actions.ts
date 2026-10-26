@@ -83,25 +83,32 @@ export async function updatePhrase(
 
 /**
  * 自分のフレーズを削除して、一覧へ戻る。
- * - 本人のフレーズかどうかは api が確かめるので、ここでは ID をそのまま渡す
+ * - 本人のフレーズかどうかは api が確かめる
+ * - id はブラウザから送られてくる値なので、使う前に確かめる。正しくない ID のフレーズはないので、404 と同じく一覧へ戻す
  * - redirect は投げて処理を止めるので、/phrases 以下の画面を取り直す revalidatePhrases はその前に呼ぶ
  * - 詳細画面を開いている間にセッションが切れていたら、ログイン後に詳細へ戻れるよう /login へ移動する
  * - それ以外の失敗は投げて error.tsx に任せる
  */
 export async function deletePhrase(id: number) {
+  const idResult = phraseIdParamSchema.safeParse({ id: String(id) });
+  if (!idResult.success) redirect("/phrases");
+  const phraseId = idResult.data.id;
+
   const client = await getApiClient();
   const res = await client.api.phrases[":id"].$delete({
-    param: { id: String(id) },
+    param: { id: String(phraseId) },
   });
   if (!res.ok) {
     // api は 404 などを AppError で投げて返すので、RPC の型には 204 しか載っていない。number として比べる
     const status: number = res.status;
     if (status === 401) {
-      redirect(`/login?redirect=${encodeURIComponent(`/phrases/${id}`)}`);
+      redirect(
+        `/login?redirect=${encodeURIComponent(`/phrases/${phraseId}`)}`,
+      );
     }
     // 別のタブで先に削除していたなど、すでにないときは削除できたものとして一覧へ戻す
     if (status !== 404) {
-      throw new Error(`phrase ${id} の削除に失敗しました: ${status}`);
+      throw new Error(`phrase ${phraseId} の削除に失敗しました: ${status}`);
     }
   }
   revalidatePhrases();

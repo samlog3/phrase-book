@@ -148,6 +148,7 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 | 取得・削除 | 上以外（500 など） | throw して `error.tsx` に任せる |
 
 - 数字でない ID は、api に問い合わせる前に web で `notFound()` にする。URL から来た値を `requireSession` の `returnTo` にそのまま渡さないため
+- 更新・削除の Server Action も、引数の ID を `phraseIdParamSchema` で確かめてから使う。引数はブラウザから送られてくる値で、書き換えて直接呼ぶこともできるため。正しくない ID は、更新では「見つかりません」と出し、削除では 404 と同じく一覧へ戻す
 - 404 と 400 を区別せず Not Found にするのは、どちらも URL として「ないページ」だから。他人のフレーズかどうかも区別しない（あることを知られないため）
 - api は 404 などを AppError で投げて返すので、RPC の型には成功時のステータスしか載っていない。比べるときは `const status: number = res.status` と受け直す
 
