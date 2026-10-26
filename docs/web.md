@@ -107,6 +107,8 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
   - ブラウザ：送る前に確かめ、誤りがあれば Server Action を呼ばずにその場で出す
   - Server Action：外から直接呼ばれても確かめる（api でも確かめるが、無駄なリクエストを送らない）
 - shared のスキーマには日本語のメッセージを書かない（api と共有していて、api のメッセージは英語のため）。web で parse するときだけ、`safeParse(data, { error })` でエラーマップを渡して日本語にする
+- 文字数の上限は shared の `PHRASE_MAX_LENGTH` に 1 か所だけ書き、スキーマとフォームの「○文字まで」の表示の両方で使う
+- フォームの項目はスキーマのキー（`keyof CreatePhraseInput`）から型で決める（`PhraseFormValues`、`parsePhraseForm` の `satisfies`）。スキーマに項目を足すと、直していない場所が型エラーになる
 - 編集でもフォームは全項目を送るので、`createPhraseSchema` で検証する。空にした任意項目は `null` になり、PATCH で「空にする」として扱われる
 - api が 400 を返したときは、`details.fieldErrors` のキーのうちフォームにある項目に「入力内容が正しくありません」を出す。api のメッセージは開発者向けの英語なので、そのままは出さない
 - `<form action>` には渡さず、`onSubmit` で `preventDefault` してから `startTransition` の中で `useActionState` の関数を呼ぶ。`<form action>` だと送ったあとに React がフォームを初期値に戻し、エラーのときに入力が消えるため

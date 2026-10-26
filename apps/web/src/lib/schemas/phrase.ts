@@ -1,8 +1,15 @@
 import { createPhraseSchema, type CreatePhraseInput } from "@phrase-book/shared";
 import * as z from "zod";
+import type { PhraseDetail } from "../api-types";
 import type { FieldErrorsOf } from "./field-errors";
 
 export type PhraseFieldErrors = FieldErrorsOf<typeof createPhraseSchema>;
+
+/**
+ * フォームの初期値（編集のときの今の値）。項目はスキーマのキーから決める。
+ * スキーマに項目を足すと、初期値を作っている編集画面が型エラーになり、直す場所がわかる。
+ */
+export type PhraseFormValues = Pick<PhraseDetail, keyof CreatePhraseInput>;
 
 /**
  * 作成・編集の Server Action の戻り値で、フォームの状態にもなる（useActionState の state）。
@@ -62,7 +69,8 @@ export function parsePhraseForm(
       source: formData.get("source"),
       sourceUrl: formData.get("sourceUrl"),
       isPublic: formData.get("isPublic") === "true",
-    },
+      // safeParse は何でも受け取るので、スキーマに足した項目の書き忘れを型で見つける
+    } satisfies Record<keyof CreatePhraseInput, unknown>,
     { error: phraseErrorMap },
   );
   if (!result.success) {

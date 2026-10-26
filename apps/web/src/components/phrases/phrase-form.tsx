@@ -23,13 +23,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import type { PhraseDetail } from "@/lib/api-types";
 import {
   initialPhraseFormState,
   parsePhraseForm,
-  type PhraseFieldErrors,
   type PhraseFormState,
+  type PhraseFormValues,
 } from "@/lib/schemas/phrase";
+import { PHRASE_MAX_LENGTH } from "@phrase-book/shared";
 
 type PhraseFormProps = {
   /** 送信先の Server Action（作成なら createPhrase、編集なら updatePhrase.bind(null, id)） */
@@ -38,17 +38,7 @@ type PhraseFormProps = {
     formData: FormData,
   ) => Promise<PhraseFormState>;
   /** 編集のときの今の値。作成のときは渡さず、空のフォームにする */
-  defaultValues?: Pick<
-    PhraseDetail,
-    | "phrase"
-    | "meaning"
-    | "example"
-    | "context"
-    | "note"
-    | "source"
-    | "sourceUrl"
-    | "isPublic"
-  >;
+  defaultValues?: PhraseFormValues;
   submitLabel: string;
   pendingLabel: string;
   /** キャンセルで戻る先 */
@@ -136,7 +126,6 @@ function PhraseFormBody({
               name="phrase"
               label="フレーズ"
               required
-              maxLength={100}
               defaultValue={defaultValues?.phrase}
               errors={fieldErrors.phrase}
               placeholder="break the ice"
@@ -145,7 +134,6 @@ function PhraseFormBody({
               name="meaning"
               label="意味"
               required
-              maxLength={200}
               defaultValue={defaultValues?.meaning}
               errors={fieldErrors.meaning}
               placeholder="場の緊張をほぐす"
@@ -154,7 +142,6 @@ function PhraseFormBody({
               name="example"
               label="例文"
               multiline
-              maxLength={200}
               defaultValue={defaultValues?.example}
               errors={fieldErrors.example}
             />
@@ -162,7 +149,6 @@ function PhraseFormBody({
               name="context"
               label="使う場面"
               multiline
-              maxLength={500}
               defaultValue={defaultValues?.context}
               errors={fieldErrors.context}
             />
@@ -171,14 +157,12 @@ function PhraseFormBody({
               label="メモ"
               description="自分だけが見られます。公開しても表示されません"
               multiline
-              maxLength={800}
               defaultValue={defaultValues?.note}
               errors={fieldErrors.note}
             />
             <TextField
               name="source"
               label="出典"
-              maxLength={100}
               defaultValue={defaultValues?.source}
               errors={fieldErrors.source}
               placeholder="Friends S1E3"
@@ -187,7 +171,6 @@ function PhraseFormBody({
               name="sourceUrl"
               label="出典の URL"
               type="url"
-              maxLength={2048}
               defaultValue={defaultValues?.sourceUrl}
               errors={fieldErrors.sourceUrl}
               placeholder="https://example.com"
@@ -226,14 +209,13 @@ function PhraseFormBody({
 }
 
 type TextFieldProps = {
-  name: keyof PhraseFieldErrors;
+  /** 文字で入力する項目。説明に出す文字数の上限は、この名前で PHRASE_MAX_LENGTH から引く */
+  name: keyof typeof PHRASE_MAX_LENGTH;
   label: string;
   description?: string;
   required?: boolean;
   /** 複数行で入力する項目は Textarea にする */
   multiline?: boolean;
-  /** 説明に出す文字数の上限。shared のスキーマと同じ値にする */
-  maxLength: number;
   defaultValue?: string | null;
   errors?: string[];
   type?: ComponentProps<"input">["type"];
@@ -250,7 +232,6 @@ function TextField({
   description,
   required,
   multiline,
-  maxLength,
   defaultValue,
   errors,
   type = "text",
@@ -291,7 +272,7 @@ function TextField({
       )}
       <FieldDescription id={descriptionId}>
         {description && `${description}。`}
-        {maxLength}文字まで
+        {PHRASE_MAX_LENGTH[name]}文字まで
       </FieldDescription>
       {errors && <FieldError id={errorId}>{errors[0]}</FieldError>}
     </Field>
