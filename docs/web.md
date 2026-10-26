@@ -80,9 +80,13 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 | フレーズの画面で使う部品 | `apps/web/src/components/phrases/` |
 | フレーズの Server Action | `apps/web/src/app/phrases/actions.ts`（先頭に `"use server"`） |
 | フォームの検証と、Server Action の戻り値の型 | `apps/web/src/lib/schemas/phrase.ts`（ブラウザと Server Action の両方から使う） |
-| 複数の画面で使うサーバー専用の処理（`getMyPhrase` など） | `apps/web/src/lib/phrases.ts`（`server-only`） |
+| 複数の画面で使うサーバー専用の処理（`getMyPhrase`、`getPublicPhrase` など） | `apps/web/src/lib/phrases.ts`（`server-only`） |
 | 複数の画面で使う部品（ヘッダーなど） | `apps/web/src/components/` の直下 |
 
+- 自分の画面と公開画面で同じ見た目の部品（一覧、カード、Not Found など）は共通にし、違うところだけを props で渡す
+  - 詳細のパスの頭（`basePath`）、戻る先（`href`）、0 件の文（`emptyMessage`）、公開バッジを出すか（`showPublicBadge`。公開画面ではすべて公開なので出さない）
+  - 編集・削除は自分の詳細でだけ出すので、`PhraseDetailCard` には持たせず、`PhraseOwnerActions` を `actions` で外から渡す
+  - 公開用の api は `note` を返さないので、`PhraseDetailCard` の `note` は任意にしている
 - Client Component は `actions.ts` の関数を import して呼ぶだけにする。`api-client.ts` は `server-only` なので、Client Component からは import できない
 - `"use server"` のファイルから export できるのは async 関数だけなので、戻り値の型や初期値は `actions.ts` に置かず `lib/schemas/phrase.ts` に置く
 
@@ -134,12 +138,16 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 | `revalidatePath` | 使う。`layout` を付けて `/phrases` に呼ぶと、一覧・詳細・編集の画面をまとめて取り直す。一覧（タイトルや公開バッジ）と詳細の両方が変わり、削除では消したフレーズの詳細・編集も古いまま残さないよう、`/phrases` 以下をまとめて対象にする |
 
 - 後で一覧・詳細を `"use cache"` で保存するようにしたら、`cacheTag` を付けて `updateTag` に切り替える
+- 公開画面（`/public`、`/public/[id]`）も Cookie は読まないが、リクエストごとに取る（`<Suspense>` の内側で fetch する）。キャッシュがないので、書き込みの後に `/public` を取り直す処理は要らない
+  - `cacheComponents` では、キャッシュしない `fetch` も `<Suspense>` の外で呼ぶとビルドエラーになる
+  - `"use cache"` で保存すると速くなるが、ビルド時に api が必要になり、書き込みの後にキャッシュを消す処理も増えるので、今は使わない
 
 ### api のエラーの扱い
 
 | 場面 | api のステータス | web での扱い |
 | --- | --- | --- |
 | 詳細の取得 | 404（存在しない・他人のフレーズ）、400（0 で始まる・大きすぎる ID） | `notFound()` で `not-found.tsx` を出す |
+| 公開詳細の取得 | 404（存在しない・非公開のフレーズ）、400 | 自分の詳細と同じく `notFound()` で `public/[id]/not-found.tsx` を出す |
 | 削除 | 404（別のタブで先に削除していたなど） | 消したいものはもうないので、成功と同じく一覧へ戻す |
 | 削除 | 401（詳細画面を開いている間にセッションが切れた） | ログイン後に詳細へ戻れるよう `/login?redirect=/phrases/{id}` へ移動する |
 | 編集画面の表示 | 404・400 | 詳細と同じく `notFound()` で `[id]/not-found.tsx` を出す |
@@ -157,7 +165,7 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 
 ### 幅と余白は layout.tsx が決める
 
-- ページの幅と余白は、`app/phrases/layout.tsx` のような `layout.tsx` に置く。一覧などの部品は並べ方（`flex`・`gap`）だけを決める
+- ページの幅と余白は、`app/phrases/layout.tsx`・`app/public/layout.tsx` のような `layout.tsx` に置く。一覧などの部品は並べ方（`flex`・`gap`）だけを決める
 - `layout.tsx` は `loading.tsx`・`error.tsx`・`page.tsx` の外側に置かれるので、読み込み中・エラー・0 件のどの状態でも同じ幅になる。部品ごとに書くと、状態が切り替わったときに位置がずれる
 
 ## Cookie の流れ
