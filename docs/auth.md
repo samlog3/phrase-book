@@ -36,7 +36,10 @@
 
 公開してよい画面（`/`、`/login`、`/signup`、`/public`、`/public/*`）だけを列挙し、それ以外はすべて保護する。画面を追加したときに列挙を忘れても、保護される側に倒れるようにするため。
 
-- 現在の実装（`proxy.ts` の `publicRoutes`）は `/`、`/login`、`/signup` の完全一致だけ。`[id]` の部分は完全一致では通らないため、前方一致で判定する形に直す必要がある
+- 判定は `isPublicPath`（`apps/web/src/lib/public-paths.ts`）で行う。`/`、`/login`、`/signup` は完全一致、`/public` はそのものと `/public/` で始まるパスを通す
+  - `/public/[id]` の `[id]` は完全一致では通らないため、`/public` だけ前方一致にしている
+  - `startsWith("/public")` だけにすると `/publicxxx` も通ってしまうので、`/public/` までを比べる
+  - 画面保護の境目なので、`public-paths.test.ts` で通すパスと通さないパスを確かめる
 - 静的ファイル（`_next/static`、画像など）は `matcher` で Proxy の対象から外す
 - 存在しないパスを未ログインで開くと、404 ではなくログイン画面に移動する
 
