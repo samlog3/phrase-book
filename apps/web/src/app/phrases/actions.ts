@@ -84,7 +84,7 @@ export async function updatePhrase(
 /**
  * 自分のフレーズを削除して、一覧へ戻る。
  * - 本人のフレーズかどうかは api が確かめるので、ここでは ID をそのまま渡す
- * - redirect は投げて処理を止めるので、一覧のデータを捨てる revalidatePath はその前に呼ぶ
+ * - redirect は投げて処理を止めるので、/phrases 以下の画面を取り直す revalidatePhrases はその前に呼ぶ
  * - 詳細画面を開いている間にセッションが切れていたら、ログイン後に詳細へ戻れるよう /login へ移動する
  * - それ以外の失敗は投げて error.tsx に任せる
  */
@@ -104,7 +104,7 @@ export async function deletePhrase(id: number) {
       throw new Error(`phrase ${id} の削除に失敗しました: ${status}`);
     }
   }
-  revalidatePath("/phrases");
+  revalidatePhrases();
   redirect("/phrases");
 }
 
@@ -119,7 +119,7 @@ const PHRASE_NOT_FOUND: PhraseFormState = {
 };
 
 /**
- * 保存した結果を一覧・詳細・編集の画面に反映する。redirect の前に呼ぶこと。
+ * 作成・更新・削除の結果を一覧・詳細・編集の画面に反映する。redirect の前に呼ぶこと。
  * - 一覧や詳細のデータは "use cache" で保存していないので、updateTag で消すキャッシュはない
  * - refresh() は今いる画面（作成・編集）しか取り直さないので、前に開いた一覧や詳細が古いまま残る
  * - revalidatePath を /phrases の layout で呼ぶと、/phrases 以下の画面をまとめて取り直す

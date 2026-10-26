@@ -113,13 +113,13 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 
 ### 書き込みの後の画面の更新
 
-作成・更新の後は `revalidatePath("/phrases", "layout")` を `redirect` の前に呼ぶ。
+作成・更新・削除の後は `revalidatePath("/phrases", "layout")`（`actions.ts` の `revalidatePhrases`）を `redirect` の前に呼ぶ。
 
 | 候補 | 使わない・使う理由 |
 | --- | --- |
 | `updateTag` | `"use cache"` と `cacheTag` で保存したデータを消すもの。一覧・詳細は Cookie を読んでリクエストごとに取っていて、タグの付いたキャッシュがないので、消すものがない |
-| `refresh()` | 今いる画面（作成・編集）を取り直すだけで、前に開いた一覧や詳細のブラウザ側のキャッシュは残る。保存後は `redirect` で別の画面へ移るので合わない |
-| `revalidatePath` | 使う。`layout` を付けて `/phrases` に呼ぶと、一覧・詳細・編集の画面をまとめて取り直す。一覧（タイトルや公開バッジ）と詳細の両方が変わるので、`/phrases` 以下をまとめて対象にする |
+| `refresh()` | 今いる画面（作成・編集・詳細）を取り直すだけで、前に開いた一覧や詳細のブラウザ側のキャッシュは残る。保存後は `redirect` で別の画面へ移るので合わない |
+| `revalidatePath` | 使う。`layout` を付けて `/phrases` に呼ぶと、一覧・詳細・編集の画面をまとめて取り直す。一覧（タイトルや公開バッジ）と詳細の両方が変わり、削除では消したフレーズの詳細・編集も古いまま残さないよう、`/phrases` 以下をまとめて対象にする |
 
 - 後で一覧・詳細を `"use cache"` で保存するようにしたら、`cacheTag` を付けて `updateTag` に切り替える
 
