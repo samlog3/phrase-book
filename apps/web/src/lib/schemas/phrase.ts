@@ -30,7 +30,11 @@ const phraseErrorMap: z.core.$ZodErrorMap = (issue) => {
     case "too_big":
       return `${issue.maximum}文字以内で入力してください`;
     case "invalid_format":
-      return "http:// か https:// で始まる URL を入力してください";
+      // URL 以外の形式（メールアドレスなど）をスキーマに足したときに、URL の文が出ないようにする
+      if (issue.format === "url") {
+        return "http:// か https:// で始まる URL を入力してください";
+      }
+      return "入力内容が正しくありません";
     default:
       return "入力内容が正しくありません";
   }
