@@ -60,16 +60,51 @@ const sendJson = (method: string, path: string, body: unknown) =>
     body: JSON.stringify(body),
   });
 
-// ミドルウェアは phrases router 全体にかかっているので、代表で GET /api/phrases だけ確かめる
+// ミドルウェアは phrases router 全体にかかっているが、5つのエンドポイントすべてで確かめる。
+// .use より前にルートを足すと、そのルートだけ保護が外れるので、その間違いに気づけるようにする。
+// body は正しい値を送り、400 ではなくセッションの検証で 401 になることを確かめる。
 describe("未ログイン", () => {
-  it("401 UNAUTHORIZED、service は呼ばれない", async () => {
+  it.each([
+    { method: "GET", path: "/api/phrases", service: listPhrases },
+    {
+      method: "POST",
+      path: "/api/phrases",
+      body: { phrase: "hello", meaning: "こんにちは" },
+      service: createPhrase,
+    },
+    { method: "GET", path: "/api/phrases/1", service: getPhrase },
+    {
+      method: "PATCH",
+      path: "/api/phrases/1",
+      body: { phrase: "new" },
+      service: updatePhrase,
+    },
+    { method: "DELETE", path: "/api/phrases/1", service: deletePhrase },
+  ])(
+    "$method $path → 401 UNAUTHORIZED、service は呼ばれない",
+    async ({ method, path, body, service }) => {
+      vi.mocked(auth.api.getSession).mockResolvedValue(null);
+
+      const res =
+        body === undefined
+          ? await app.request(path, { method })
+          : await sendJson(method, path, body);
+
+      expect(res.status).toBe(401);
+      expect((await res.json()).error.code).toBe("UNAUTHORIZED");
+      expect(vi.mocked(service)).not.toHaveBeenCalled();
+    },
+  );
+
+  // セッションの検証は validator より先に動く。順番が逆になると、
+  // ログインしていない人にも「どの項目が不正か」が返ってしまう
+  it("body が不正でも、400 ではなく 401 UNAUTHORIZED", async () => {
     vi.mocked(auth.api.getSession).mockResolvedValue(null);
 
-    const res = await app.request("/api/phrases");
+    const res = await sendJson("POST", "/api/phrases", { meaning: "m" });
 
     expect(res.status).toBe(401);
     expect((await res.json()).error.code).toBe("UNAUTHORIZED");
-    expect(vi.mocked(listPhrases)).not.toHaveBeenCalled();
   });
 });
 
@@ -224,6 +259,20 @@ describe("PATCH /api/phrases/:id", () => {
     expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
     expect(vi.mocked(updatePhrase)).not.toHaveBeenCalled();
   });
+
+  // 存在しない ID や他人のフレーズのとき、service が投げた 404 がそのまま返る
+  it("service が AppError(404) を投げる → 404 NOT_FOUND", async () => {
+    vi.mocked(updatePhrase).mockRejectedValue(
+      new AppError(404, ERROR_CODE.NOT_FOUND, "Not found"),
+    );
+
+    const res = await sendJson("PATCH", "/api/phrases/1", { phrase: "new" });
+
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({
+      error: { code: "NOT_FOUND", message: "Not found" },
+    });
+  });
 });
 
 describe("DELETE /api/phrases/:id", () => {
@@ -243,5 +292,19 @@ describe("DELETE /api/phrases/:id", () => {
     expect(res.status).toBe(400);
     expect((await res.json()).error.code).toBe("VALIDATION_ERROR");
     expect(vi.mocked(deletePhrase)).not.toHaveBeenCalled();
+  });
+
+  // 存在しない ID や他人のフレーズのとき、service が投げた 404 がそのまま返る
+  it("service が AppError(404) を投げる → 404 NOT_FOUND", async () => {
+    vi.mocked(deletePhrase).mockRejectedValue(
+      new AppError(404, ERROR_CODE.NOT_FOUND, "Not found"),
+    );
+
+    const res = await app.request("/api/phrases/1", { method: "DELETE" });
+
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({
+      error: { code: "NOT_FOUND", message: "Not found" },
+    });
   });
 });
