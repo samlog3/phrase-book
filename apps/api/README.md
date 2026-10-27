@@ -1,8 +1,3 @@
-```
-pnpm install
-pnpm dev
-```
+# @phrase-book/api
 
-```
-open http://localhost:8787
-```
+Hono の API サーバー。セットアップと起動の方法は、ルートの [README](../../README.md) を参照。
