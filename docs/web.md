@@ -186,6 +186,7 @@ Better Auth のクライアントで api に直接送る（CORS を通る）
 
 | 画面 | Server Component | Client Component | Server Action |
 | --- | --- | --- | --- |
+| `/` | 紹介とリンクだけ（静的） | なし | なし |
 | `/phrases` | 一覧を取る（作成へのリンク） | なし | なし |
 | `/phrases/[id]` | 詳細を取る（作成・編集へのリンク） | 削除ボタン（確認） | 削除 → 一覧へ移動 |
 | `/phrases/new` | ログインを確かめる | フォーム | 作成 → 詳細へ移動 |
