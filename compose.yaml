@@ -14,5 +14,34 @@ services:
       retries: 5
     volumes:
       - mysql-data:/var/lib/mysql
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "8787:8787"
+    environment:
+      DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD}@db:3306/${MYSQL_DATABASE}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${PUBLIC_API_URL}
+      WEB_ORIGIN: ${WEB_ORIGIN}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "pnpm --filter @phrase-book/api exec prisma migrate deploy && pnpm --filter @phrase-book/api start"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
+    ports:
+      - "3000:3000"
+    environment:
+      API_URL: http://api:8787
+    depends_on:
+      - api
 volumes:
   mysql-data:
