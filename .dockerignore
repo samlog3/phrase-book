@@ -1,0 +1,49 @@
+# dependencies
+**/node_modules
+
+# git
+.git
+
+# testing
+**/coverage
+
+# next.js
+**/.next
+**/out
+
+# production
+**/build
+**/dist
+
+# misc
+**/.DS_Store
+**/*.pem
+
+# debug
+**/.pnpm-debug.log*
+
+# env files
+**/.env*
+
+# typescript
+**/*.tsbuildinfo
+**/next-env.d.ts
+
+# prisma（コンテナ内で prisma generate する）
+**/src/generated
+
+# 個人用
+note.md
+temp
+**/.claude
+.vscode
+docs
+**/*.md
+
+# prisma の agents
+**/.agents
+**/.windsurf
+**/skills-lock.json
+
+compose.yaml
+**/Dockerfile*

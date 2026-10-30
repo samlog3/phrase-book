@@ -4,7 +4,7 @@ import { hc } from "hono/client";
 // 型だけを持ってくる。api のコードは web に入らない
 import type { AppType } from "@phrase-book/api";
 import { cookies } from "next/headers";
-import { apiUrl } from "./env";
+import { serverApiUrl } from "./server-env";
 
 /**
  * ログイン中のユーザー用の api クライアント（Hono RPC）。
@@ -15,7 +15,7 @@ import { apiUrl } from "./env";
  */
 export async function getApiClient() {
   const cookie = (await cookies()).toString();
-  return hc<AppType>(apiUrl, { headers: { cookie } });
+  return hc<AppType>(serverApiUrl, { headers: { cookie } });
 }
 
 /**
@@ -23,4 +23,4 @@ export async function getApiClient() {
  * - 誰が呼んでも同じなので、関数ではなく定数にしている
  * - cookies() を読まないので、<Suspense> の外でも使える
  */
-export const publicApiClient = hc<AppType>(apiUrl);
+export const publicApiClient = hc<AppType>(serverApiUrl);

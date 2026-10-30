@@ -6,7 +6,7 @@
  * `NEXT_PUBLIC_` の環境変数は、ビルド時に `process.env.NEXT_PUBLIC_XXX` と書かれた箇所だけが値に置き換わるため、
  * `process.env[name]` のように動的に読むとブラウザでは常に `undefined` になる。
  */
-function requireEnv(name: string, value: string | undefined): string {
+export function requireEnv(name: string, value: string | undefined): string {
   if (!value) {
     throw new Error(`${name} が設定されていません`);
   }

@@ -1,8 +1,18 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { authClient } from "./auth-client";
+import { createAuthClient } from "better-auth/react";
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { serverApiUrl } from "./server-env";
+
+/**
+ * サーバー用の Better Auth のクライアント。
+ * `auth-client.ts` の `authClient` はブラウザ用の URL（`NEXT_PUBLIC_API_URL`）を使うため、
+ * Docker ではコンテナの中の `localhost` を指してしまい api に届かない。ここでは `serverApiUrl` を使う。
+ */
+const serverAuthClient = createAuthClient({
+  baseURL: serverApiUrl,
+});
 
 /**
  * api に問い合わせて、Cookie が指すセッションが有効か確認する。移動はしない。
@@ -14,7 +24,7 @@ import { redirect } from "next/navigation";
 export const getSession = cache(async () => {
   // 転送するのは cookie ヘッダーだけ（host などは api に送らない）
   const cookie = (await cookies()).toString();
-  const { data, error } = await authClient.getSession({
+  const { data, error } = await serverAuthClient.getSession({
     fetchOptions: {
       headers: { cookie },
     },
